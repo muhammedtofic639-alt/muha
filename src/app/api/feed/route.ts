@@ -14,15 +14,18 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
   }
 
+  const params = new URL(req.url).searchParams;
+  const categoryId = params.get("categoryId") ?? undefined;
+
   if (account.role === "RECRUITER") {
-    const jobId = new URL(req.url).searchParams.get("jobId");
+    const jobId = params.get("jobId");
     if (!jobId) {
       return NextResponse.json({ error: "jobId is required for recruiter view" }, { status: 400 });
     }
-    const candidates = await getCandidateFeedForJob(jobId, account.id);
+    const candidates = await getCandidateFeedForJob(jobId, account.id, categoryId);
     return NextResponse.json({ cards: candidates });
   }
 
-  const jobs = await getJobFeedForSeeker(account.id);
+  const jobs = await getJobFeedForSeeker(account.id, categoryId);
   return NextResponse.json({ cards: jobs });
 }

@@ -7,10 +7,11 @@ const PAGE_SIZE = 10;
  * swiped on. Self-exclusion isn't needed here since seekers don't post jobs,
  * but is included for safety in case roles change.
  */
-export async function getJobFeedForSeeker(seekerAccountId: string) {
+export async function getJobFeedForSeeker(seekerAccountId: string, categoryId?: string) {
   const jobs = await prisma.job.findMany({
     where: {
       isActive: true,
+      ...(categoryId ? { categoryId } : {}),
       company: { accountId: { not: seekerAccountId } },
       swipes: {
         none: { actorId: seekerAccountId },
@@ -18,6 +19,7 @@ export async function getJobFeedForSeeker(seekerAccountId: string) {
     },
     include: {
       company: { select: { accountId: true, companyName: true, logoUrl: true, location: true } },
+      category: { select: { id: true, name: true, slug: true } },
     },
     orderBy: { createdAt: "desc" },
     take: PAGE_SIZE,
@@ -47,8 +49,10 @@ export async function getJobFeedForSeeker(seekerAccountId: string) {
  * Candidate feed for a recruiter reviewing applicants for one of their jobs:
  * every seeker who has not already been swiped on for this job, excluding
  * the recruiter's own account (can't happen by role, kept for safety).
+ * An optional categoryId narrows the deck to seekers in that one category
+ * (e.g. "Software Engineer") via the employer's category filter menu.
  */
-export async function getCandidateFeedForJob(jobId: string, recruiterAccountId: string) {
+export async function getCandidateFeedForJob(jobId: string, recruiterAccountId: string, categoryId?: string) {
   const alreadySwiped = await prisma.swipe.findMany({
     where: { actorId: recruiterAccountId, jobId, targetAccountId: { not: null } },
     select: { targetAccountId: true },
@@ -58,9 +62,13 @@ export async function getCandidateFeedForJob(jobId: string, recruiterAccountId: 
   return prisma.seekerProfile.findMany({
     where: {
       accountId: { notIn: excludedAccountIds },
+      ...(categoryId ? { categoryId } : {}),
       // Only surface candidates who've actually finished their card media —
       // an empty photo/video slide isn't swipeable.
       profilePhotoUrl: { not: null },
+    },
+    include: {
+      category: { select: { id: true, name: true, slug: true } },
     },
     orderBy: { createdAt: "desc" },
     take: PAGE_SIZE,

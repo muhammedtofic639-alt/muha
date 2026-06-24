@@ -3,8 +3,15 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { IdCard, FileText, Upload } from "lucide-react";
+import { CategoryOption } from "@/lib/types";
 
-export function DocumentUploadForm({ role }: { role: "SEEKER" | "RECRUITER" }) {
+export function DocumentUploadForm({
+  role,
+  categories,
+}: {
+  role: "SEEKER" | "RECRUITER";
+  categories: CategoryOption[];
+}) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -43,6 +50,24 @@ export function DocumentUploadForm({ role }: { role: "SEEKER" | "RECRUITER" }) {
             />
           </label>
           <FileField name="governmentId" label="Government ID" icon={<IdCard size={18} aria-hidden="true" />} />
+          <label className="flex flex-col gap-1.5">
+            <span className="text-sm font-medium text-navy-800">Category</span>
+            <select
+              name="categoryId"
+              required
+              defaultValue=""
+              className="cursor-pointer rounded-xl border border-navy-200 bg-white px-3 py-2.5 text-[15px] text-navy-900 outline-none"
+            >
+              <option value="" disabled>
+                Select your primary category
+              </option>
+              {categories.map((category) => (
+                <option key={category.id} value={category.id}>
+                  {category.name}
+                </option>
+              ))}
+            </select>
+          </label>
           <label className="flex flex-col gap-1.5">
             <span className="text-sm font-medium text-navy-800">Elevator pitch video link</span>
             <input

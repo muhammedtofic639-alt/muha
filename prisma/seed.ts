@@ -2,7 +2,27 @@ import { PrismaClient, Role, AccountStatus, JobType, WorkMode } from "@prisma/cl
 
 const prisma = new PrismaClient();
 
+const CATEGORY_NAMES = [
+  "Software Engineer",
+  "Video Editor",
+  "Graphic Designer",
+  "Civil Engineer",
+  "Digital Marketer",
+];
+
+function slugify(name: string) {
+  return name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+}
+
 async function main() {
+  const categories = await Promise.all(
+    CATEGORY_NAMES.map((name) =>
+      prisma.category.create({ data: { name, slug: slugify(name) } })
+    )
+  );
+  const categoryByName = new Map(categories.map((c) => [c.name, c]));
+  const softwareEngineerCategory = categoryByName.get("Software Engineer")!;
+
   const recruiterAccount = await prisma.account.create({
     data: {
       status: AccountStatus.APPROVED,
@@ -25,6 +45,7 @@ async function main() {
   await prisma.job.create({
     data: {
       companyId: recruiterAccount.companyProfile!.id,
+      categoryId: softwareEngineerCategory.id,
       title: "Frontend Engineer",
       description: "Build delightful, performant interfaces for our mobile-first banking app.",
       tags: ["React", "TypeScript", "Tailwind"],
@@ -46,6 +67,7 @@ async function main() {
       seekerProfile: {
         create: {
           fullName: "Selam Tesfaye",
+          categoryId: softwareEngineerCategory.id,
           headline: "Frontend Engineer",
           yearsExp: 3,
           bio: "Frontend engineer passionate about accessible, performant web apps.",
@@ -77,6 +99,7 @@ async function main() {
       seekerProfile: {
         create: {
           fullName: "Yonas Bekele",
+          categoryId: categoryByName.get("Civil Engineer")!.id,
           governmentIdUrl: "https://placeholder.local/uploads/yonas-id.pdf",
         },
       },

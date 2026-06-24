@@ -27,26 +27,34 @@ export async function POST(req: NextRequest) {
     const fullName = form.get("fullName");
     const governmentId = form.get("governmentId");
     const videoPitchUrl = form.get("videoPitchUrl");
+    const categoryId = form.get("categoryId");
 
     if (
       typeof fullName !== "string" ||
       !fullName.trim() ||
       !(governmentId instanceof File) ||
       typeof videoPitchUrl !== "string" ||
-      !isVideoPitchUrl(videoPitchUrl)
+      !isVideoPitchUrl(videoPitchUrl) ||
+      typeof categoryId !== "string" ||
+      !categoryId
     ) {
       return NextResponse.json(
-        { error: "fullName, a governmentId file, and a YouTube/TikTok video link are required" },
+        { error: "fullName, a governmentId file, a category, and a YouTube/TikTok video link are required" },
         { status: 400 }
       );
+    }
+
+    const category = await prisma.category.findUnique({ where: { id: categoryId } });
+    if (!category) {
+      return NextResponse.json({ error: "Unknown category" }, { status: 400 });
     }
 
     const { url: governmentIdUrl } = await uploadFile(governmentId, "government_id");
 
     await prisma.seekerProfile.upsert({
       where: { accountId: account.id },
-      update: { fullName, governmentIdUrl, videoPitchUrl },
-      create: { accountId: account.id, fullName, governmentIdUrl, videoPitchUrl },
+      update: { fullName, governmentIdUrl, videoPitchUrl, categoryId },
+      create: { accountId: account.id, fullName, governmentIdUrl, videoPitchUrl, categoryId },
     });
   } else {
     const companyName = form.get("companyName");

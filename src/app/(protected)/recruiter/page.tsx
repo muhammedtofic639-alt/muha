@@ -3,11 +3,13 @@
 import { useCallback, useEffect, useState } from "react";
 import { TopBar } from "@/components/TopBar";
 import { SwipeDeck, DeckCard } from "@/components/SwipeDeck";
-import { CandidateCardData } from "@/lib/types";
+import { CandidateCardData, CategoryOption } from "@/lib/types";
 
 export default function RecruiterPage() {
   const [jobOptions, setJobOptions] = useState<{ id: string; title: string }[]>([]);
   const [selectedJobId, setSelectedJobId] = useState<string>("");
+  const [categories, setCategories] = useState<CategoryOption[]>([]);
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string>("");
   const [candidates, setCandidates] = useState<CandidateCardData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -19,16 +21,20 @@ export default function RecruiterPage() {
         setJobOptions(data.jobs ?? []);
         if (data.jobs?.[0]) setSelectedJobId(data.jobs[0].id);
       });
+    fetch("/api/categories")
+      .then((res) => res.json())
+      .then((data) => setCategories(data.categories ?? []));
   }, []);
 
   const loadFeed = useCallback(async () => {
     if (!selectedJobId) return;
     setIsLoading(true);
-    const res = await fetch(`/api/feed?jobId=${selectedJobId}`);
+    const categoryParam = selectedCategoryId ? `&categoryId=${selectedCategoryId}` : "";
+    const res = await fetch(`/api/feed?jobId=${selectedJobId}${categoryParam}`);
     const data = await res.json();
     setCandidates(data.cards ?? []);
     setIsLoading(false);
-  }, [selectedJobId]);
+  }, [selectedJobId, selectedCategoryId]);
 
   useEffect(() => {
     loadFeed();
@@ -69,6 +75,35 @@ export default function RecruiterPage() {
           ))}
         </select>
       </div>
+
+      <div className="flex gap-2 overflow-x-auto px-4 pt-3 pb-1" role="group" aria-label="Filter by category">
+        <button
+          type="button"
+          onClick={() => setSelectedCategoryId("")}
+          className={`shrink-0 cursor-pointer rounded-full px-3.5 py-1.5 text-sm font-medium transition-colors duration-200 ${
+            selectedCategoryId === ""
+              ? "bg-navy-900 text-white"
+              : "bg-navy-100 text-navy-700 hover:bg-navy-200"
+          }`}
+        >
+          All
+        </button>
+        {categories.map((category) => (
+          <button
+            key={category.id}
+            type="button"
+            onClick={() => setSelectedCategoryId(category.id)}
+            className={`shrink-0 cursor-pointer rounded-full px-3.5 py-1.5 text-sm font-medium transition-colors duration-200 ${
+              selectedCategoryId === category.id
+                ? "bg-navy-900 text-white"
+                : "bg-navy-100 text-navy-700 hover:bg-navy-200"
+            }`}
+          >
+            {category.name}
+          </button>
+        ))}
+      </div>
+
       <SwipeDeck
         cards={candidates.map((candidate) => ({ kind: "candidate" as const, data: candidate }))}
         isLoading={isLoading}

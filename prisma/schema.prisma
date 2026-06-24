@@ -39,6 +39,19 @@ enum WorkMode {
   HYBRID
 }
 
+// Local-market job categories (e.g. "Software Engineer", "Graphic Designer").
+// A table rather than an enum so new categories can be added without a
+// schema migration that touches every consumer.
+model Category {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  slug      String   @unique
+  createdAt DateTime @default(now())
+
+  seekerProfiles SeekerProfile[]
+  jobs           Job[]
+}
+
 model Account {
   id            String        @id @default(cuid())
 
@@ -79,6 +92,11 @@ model SeekerProfile {
   yearsExp    Int      @default(0)
   bio         String?
 
+  // Primary job category — every seeker belongs to exactly one. Drives the
+  // employer's category filter menu on the candidate feed.
+  categoryId  String
+  category    Category @relation(fields: [categoryId], references: [id])
+
   // Verification gate document — required before an admin can approve the account.
   governmentIdUrl   String?
 
@@ -95,6 +113,8 @@ model SeekerProfile {
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+
+  @@index([categoryId])
 }
 
 model CompanyProfile {
@@ -149,6 +169,11 @@ model Job {
   title         String
   description   String
   tags          String[]
+
+  // Explicit job category — independent of jobType/workMode — so seekers
+  // and the matching logic can be filtered by the same taxonomy.
+  categoryId    String
+  category      Category    @relation(fields: [categoryId], references: [id])
   jobType       JobType
   workMode      WorkMode
   salaryMin     Int?
@@ -164,6 +189,7 @@ model Job {
   matches       Match[]
 
   @@index([isActive])
+  @@index([categoryId])
 }
 
 // A swipe always belongs to an Account (the actor) acting on a Job.

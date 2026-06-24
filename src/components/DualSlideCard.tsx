@@ -99,7 +99,10 @@ export function DualSlideCard({ candidate }: { candidate: CandidateCardData }) {
 
       {/* Bottom overlay: name, headline, skills */}
       <div className="relative z-20 bg-gradient-to-t from-navy-950 via-navy-950/90 to-transparent px-6 pb-6 pt-10">
-        <h2 className="font-display text-2xl font-bold text-white">{candidate.fullName}</h2>
+        <span className="inline-block rounded-full bg-gold-500/20 px-3 py-1 text-xs font-semibold text-gold-300">
+          {candidate.category.name}
+        </span>
+        <h2 className="mt-2 font-display text-2xl font-bold text-white">{candidate.fullName}</h2>
         {candidate.headline && <p className="text-[15px] text-navy-100">{candidate.headline}</p>}
         <p className="mt-1 flex items-center gap-3 text-sm text-navy-200">
           <span className="flex items-center gap-1">

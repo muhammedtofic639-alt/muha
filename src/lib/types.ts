@@ -1,3 +1,9 @@
+export interface CategoryOption {
+  id: string;
+  name: string;
+  slug: string;
+}
+
 export interface JobCardData {
   id: string;
   title: string;
@@ -9,6 +15,7 @@ export interface JobCardData {
   salaryMax: number | null;
   salaryPeriod: string;
   currency: string;
+  category: CategoryOption;
   company: {
     accountId: string;
     companyName: string;
@@ -31,6 +38,7 @@ export interface CandidateCardData {
   videoPitchUrl: string | null;
   avatarUrl: string | null;
   location: string | null;
+  category: CategoryOption;
 }
 
 export interface CompanyRatingSummary {

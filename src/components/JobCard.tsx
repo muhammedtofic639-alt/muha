@@ -54,6 +54,9 @@ export function JobCard({
         </div>
 
         <div className="flex flex-wrap gap-2">
+          <span className="rounded-full bg-gold-500/20 px-3 py-1 text-xs font-semibold text-gold-700">
+            {job.category.name}
+          </span>
           <span className="rounded-full bg-navy-100 px-3 py-1 text-xs font-medium text-navy-800">
             {JOB_TYPE_LABEL[job.jobType] ?? job.jobType}
           </span>
