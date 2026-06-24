@@ -5,16 +5,14 @@ import { TopBar } from "@/components/TopBar";
 import { SwipeDeck, DeckCard } from "@/components/SwipeDeck";
 import { JobCardData } from "@/lib/types";
 
-// In a Telegram Web App, this would come from window.Telegram.WebApp.initDataUnsafe.user.
-const DEMO_SEEKER_ACCOUNT_ID = process.env.NEXT_PUBLIC_DEMO_SEEKER_ID ?? "";
-
 export default function SeekerPage() {
   const [jobs, setJobs] = useState<JobCardData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   const loadFeed = useCallback(async () => {
     setIsLoading(true);
-    const res = await fetch(`/api/feed?view=seeker&accountId=${DEMO_SEEKER_ACCOUNT_ID}`);
+    // Identity comes from the session cookie server-side — no account id needed.
+    const res = await fetch("/api/feed");
     const data = await res.json();
     setJobs(data.cards ?? []);
     setIsLoading(false);
@@ -28,7 +26,7 @@ export default function SeekerPage() {
     const res = await fetch("/api/swipe", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ actorId: DEMO_SEEKER_ACCOUNT_ID, jobId: card.data.id, action }),
+      body: JSON.stringify({ jobId: card.data.id, action }),
     });
     const data = await res.json();
     return { matched: Boolean(data.matched), partnerChatUrl: data.partnerChatUrl };
@@ -38,7 +36,7 @@ export default function SeekerPage() {
     await fetch("/api/ratings", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ seekerAccountId: DEMO_SEEKER_ACCOUNT_ID, companyAccountId, rating }),
+      body: JSON.stringify({ companyAccountId, rating }),
     });
   }
 
@@ -50,7 +48,6 @@ export default function SeekerPage() {
         isLoading={isLoading}
         onSwipe={handleSwipe}
         matchPartnerName={(card) => (card.kind === "job" ? card.data.company.companyName : "")}
-        seekerAccountId={DEMO_SEEKER_ACCOUNT_ID}
         onRateCompany={handleRateCompany}
       />
     </>

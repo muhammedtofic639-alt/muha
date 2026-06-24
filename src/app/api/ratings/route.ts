@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { getCurrentAccount } from "@/lib/session";
 
 interface RatingBody {
-  seekerAccountId: string;
   companyAccountId: string;
   rating: number;
 }
@@ -12,19 +12,26 @@ function isValidRating(rating: unknown): rating is number {
 }
 
 export async function POST(req: NextRequest) {
+  // The rater is always the authenticated seeker — taken from the session, not
+  // the body, so ratings can't be attributed to another account.
+  const account = await getCurrentAccount();
+  if (!account) {
+    return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+  }
+
   const body = (await req.json()) as RatingBody;
 
-  if (!body.seekerAccountId || !body.companyAccountId) {
-    return NextResponse.json({ error: "seekerAccountId and companyAccountId are required" }, { status: 400 });
+  if (!body.companyAccountId) {
+    return NextResponse.json({ error: "companyAccountId is required" }, { status: 400 });
   }
   if (!isValidRating(body.rating)) {
     return NextResponse.json({ error: "rating must be between 1 and 10 in 0.5 steps" }, { status: 400 });
   }
 
   const rating = await prisma.companyRating.upsert({
-    where: { seekerId_companyId: { seekerId: body.seekerAccountId, companyId: body.companyAccountId } },
+    where: { seekerId_companyId: { seekerId: account.id, companyId: body.companyAccountId } },
     update: { rating: body.rating },
-    create: { seekerId: body.seekerAccountId, companyId: body.companyAccountId, rating: body.rating },
+    create: { seekerId: account.id, companyId: body.companyAccountId, rating: body.rating },
   });
 
   const aggregate = await prisma.companyRating.aggregate({

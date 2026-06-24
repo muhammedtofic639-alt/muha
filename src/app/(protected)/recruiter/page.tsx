@@ -5,9 +5,6 @@ import { TopBar } from "@/components/TopBar";
 import { SwipeDeck, DeckCard } from "@/components/SwipeDeck";
 import { CandidateCardData } from "@/lib/types";
 
-// In a Telegram Web App, this would come from window.Telegram.WebApp.initDataUnsafe.user.
-const DEMO_RECRUITER_ACCOUNT_ID = process.env.NEXT_PUBLIC_DEMO_RECRUITER_ID ?? "";
-
 export default function RecruiterPage() {
   const [jobOptions, setJobOptions] = useState<{ id: string; title: string }[]>([]);
   const [selectedJobId, setSelectedJobId] = useState<string>("");
@@ -15,7 +12,8 @@ export default function RecruiterPage() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    fetch(`/api/jobs?accountId=${DEMO_RECRUITER_ACCOUNT_ID}`)
+    // The recruiter's own postings — identity resolved from the session cookie.
+    fetch("/api/jobs")
       .then((res) => res.json())
       .then((data) => {
         setJobOptions(data.jobs ?? []);
@@ -26,9 +24,7 @@ export default function RecruiterPage() {
   const loadFeed = useCallback(async () => {
     if (!selectedJobId) return;
     setIsLoading(true);
-    const res = await fetch(
-      `/api/feed?view=recruiter&accountId=${DEMO_RECRUITER_ACCOUNT_ID}&jobId=${selectedJobId}`
-    );
+    const res = await fetch(`/api/feed?jobId=${selectedJobId}`);
     const data = await res.json();
     setCandidates(data.cards ?? []);
     setIsLoading(false);
@@ -44,7 +40,6 @@ export default function RecruiterPage() {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        actorId: DEMO_RECRUITER_ACCOUNT_ID,
         jobId: selectedJobId,
         targetAccountId: card.data.accountId,
         action,

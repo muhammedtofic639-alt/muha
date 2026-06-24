@@ -1,16 +1,15 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { getCurrentAccount } from "@/lib/session";
 
-export async function GET(req: NextRequest) {
-  const { searchParams } = new URL(req.url);
-  const accountId = searchParams.get("accountId");
-
-  if (!accountId) {
-    return NextResponse.json({ error: "accountId is required" }, { status: 400 });
+export async function GET() {
+  const account = await getCurrentAccount();
+  if (!account) {
+    return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
   }
 
   const matches = await prisma.match.findMany({
-    where: { OR: [{ seekerId: accountId }, { recruiterId: accountId }] },
+    where: { OR: [{ seekerId: account.id }, { recruiterId: account.id }] },
     include: {
       job: { include: { company: true } },
       seeker: { include: { seekerProfile: true } },
@@ -19,5 +18,7 @@ export async function GET(req: NextRequest) {
     orderBy: { createdAt: "desc" },
   });
 
-  return NextResponse.json({ matches });
+  // Return the viewer's own id so the client can tell which side of each match
+  // it is on (and therefore who the "partner" is) without trusting a guess.
+  return NextResponse.json({ matches, accountId: account.id });
 }

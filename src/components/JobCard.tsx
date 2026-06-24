@@ -17,11 +17,9 @@ const JOB_TYPE_LABEL: Record<string, string> = {
 
 export function JobCard({
   job,
-  seekerAccountId,
   onRateCompany,
 }: {
   job: JobCardData;
-  seekerAccountId?: string;
   onRateCompany?: (companyAccountId: string, rating: number) => Promise<void>;
 }) {
   return (
@@ -45,11 +43,7 @@ export function JobCard({
         <StarRating
           average={job.company.rating.average}
           count={job.company.rating.count}
-          onRate={
-            seekerAccountId && onRateCompany
-              ? (rating) => onRateCompany(job.company.accountId, rating)
-              : undefined
-          }
+          onRate={onRateCompany ? (rating) => onRateCompany(job.company.accountId, rating) : undefined}
         />
         <div>
           <h2 className="font-display text-2xl font-bold leading-tight text-navy-900">{job.title}</h2>

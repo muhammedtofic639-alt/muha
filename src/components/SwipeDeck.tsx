@@ -20,7 +20,6 @@ interface SwipeDeckProps {
     action: "LIKE" | "PASS"
   ) => Promise<{ matched: boolean; partnerChatUrl?: string | null }>;
   matchPartnerName?: (card: DeckCard) => string;
-  seekerAccountId?: string;
   onRateCompany?: (companyAccountId: string, rating: number) => Promise<void>;
 }
 
@@ -31,7 +30,6 @@ export function SwipeDeck({
   isLoading,
   onSwipe,
   matchPartnerName,
-  seekerAccountId,
   onRateCompany,
 }: SwipeDeckProps) {
   const [stack, setStack] = useState(cards);
@@ -116,7 +114,7 @@ export function SwipeDeck({
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
             >
               {card.kind === "job" ? (
-                <JobCard job={card.data} seekerAccountId={seekerAccountId} onRateCompany={onRateCompany} />
+                <JobCard job={card.data} onRateCompany={onRateCompany} />
               ) : (
                 <DualSlideCard candidate={card.data} />
               )}

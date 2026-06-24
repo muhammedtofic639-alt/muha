@@ -6,12 +6,11 @@ import { openTelegramLink } from "@telegram-apps/sdk-react";
 import { TopBar } from "@/components/TopBar";
 import { telegramChatUrl } from "@/lib/telegram/chatLink";
 
-const DEMO_ACCOUNT_ID =
-  process.env.NEXT_PUBLIC_DEMO_SEEKER_ID ?? process.env.NEXT_PUBLIC_DEMO_RECRUITER_ID ?? "";
-
 interface MatchRow {
   id: string;
   createdAt: string;
+  seekerId: string;
+  recruiterId: string;
   job: { title: string; company: { companyName: string } };
   seeker: { username: string | null; telegramId: string; seekerProfile: { fullName: string } | null };
   recruiter: { username: string | null; telegramId: string; companyProfile: { companyName: string } | null };
@@ -28,12 +27,18 @@ function openChat(url: string) {
 
 export default function MatchesPage() {
   const [matches, setMatches] = useState<MatchRow[]>([]);
+  const [accountId, setAccountId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    fetch(`/api/matches?accountId=${DEMO_ACCOUNT_ID}`)
+    // Identity (and which side of each match the viewer is on) comes from the
+    // session-scoped endpoint, not a client-held id.
+    fetch("/api/matches")
       .then((res) => res.json())
-      .then((data) => setMatches(data.matches ?? []))
+      .then((data) => {
+        setMatches(data.matches ?? []);
+        setAccountId(data.accountId ?? null);
+      })
       .finally(() => setIsLoading(false));
   }, []);
 
@@ -51,11 +56,13 @@ export default function MatchesPage() {
 
         <ul className="mt-4 flex flex-col gap-3">
           {matches.map((match) => {
-            const isSeekerSide = match.seeker.seekerProfile !== null;
-            const partnerName = isSeekerSide
+            // The viewer is the seeker on this match when their account id is
+            // the seekerId; the partner is therefore the other party.
+            const viewerIsSeeker = match.seekerId === accountId;
+            const partnerName = viewerIsSeeker
               ? match.recruiter.companyProfile?.companyName ?? "Recruiter"
               : match.seeker.seekerProfile?.fullName ?? "Candidate";
-            const partner = isSeekerSide ? match.recruiter : match.seeker;
+            const partner = viewerIsSeeker ? match.recruiter : match.seeker;
             const chatUrl = telegramChatUrl(partner.username, partner.telegramId);
 
             return (
