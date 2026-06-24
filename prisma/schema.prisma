@@ -1,0 +1,150 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  SEEKER
+  RECRUITER
+}
+
+enum SwipeAction {
+  LIKE
+  PASS
+}
+
+enum JobType {
+  FULL_TIME
+  PART_TIME
+  CONTRACT
+  INTERNSHIP
+}
+
+enum WorkMode {
+  REMOTE
+  ON_SITE
+  HYBRID
+}
+
+model Account {
+  id            String   @id @default(cuid())
+  telegramId    String   @unique
+  username      String?
+  role          Role
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  seekerProfile   SeekerProfile?
+  companyProfile  CompanyProfile?
+
+  swipesGiven     Swipe[]  @relation("SwipeActor")
+  matchesAsSeeker Match[]  @relation("MatchSeeker")
+  matchesAsRecruiter Match[] @relation("MatchRecruiter")
+
+  @@index([role])
+}
+
+model SeekerProfile {
+  id          String   @id @default(cuid())
+  accountId   String   @unique
+  account     Account  @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  fullName    String
+  headline    String
+  yearsExp    Int      @default(0)
+  bio         String
+  skills      String[]
+  avatarUrl   String?
+  location    String?
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model CompanyProfile {
+  id          String   @id @default(cuid())
+  accountId   String   @unique
+  account     Account  @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  companyName String
+  logoUrl     String?
+  about       String?
+  location    String?
+
+  jobs        Job[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Job {
+  id            String      @id @default(cuid())
+  companyId     String
+  company       CompanyProfile @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  title         String
+  description   String
+  tags          String[]
+  jobType       JobType
+  workMode      WorkMode
+  salaryMin     Int?
+  salaryMax     Int?
+  salaryPeriod  String      @default("MONTHLY") // MONTHLY | YEARLY
+  currency      String      @default("ETB")
+
+  isActive      Boolean     @default(true)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  swipes        Swipe[]
+  matches       Match[]
+
+  @@index([isActive])
+}
+
+// A swipe always belongs to an Account (the actor) acting on a Job.
+// Seeker swipe: actor = seeker, jobId = the job, targetAccountId = null.
+// Recruiter swipe: actor = recruiter, jobId = the opening, targetAccountId = candidate's accountId.
+// `subjectKey` is a derived, never-null dedupe key (jobId, or "jobId:targetAccountId")
+// because Postgres treats NULLs as distinct in unique indexes and a nullable
+// targetAccountId would otherwise let duplicate seeker swipes slip through.
+model Swipe {
+  id              String      @id @default(cuid())
+  actorId         String
+  actor           Account     @relation("SwipeActor", fields: [actorId], references: [id], onDelete: Cascade)
+
+  jobId           String
+  job             Job         @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  targetAccountId String?     // candidate's accountId, set only for recruiter swipes
+  subjectKey      String
+
+  action          SwipeAction
+  createdAt       DateTime    @default(now())
+
+  @@unique([actorId, subjectKey])
+  @@index([jobId])
+  @@index([targetAccountId])
+}
+
+model Match {
+  id              String   @id @default(cuid())
+
+  seekerId        String
+  seeker          Account  @relation("MatchSeeker", fields: [seekerId], references: [id], onDelete: Cascade)
+
+  recruiterId     String
+  recruiter       Account  @relation("MatchRecruiter", fields: [recruiterId], references: [id], onDelete: Cascade)
+
+  jobId           String
+  job             Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  createdAt       DateTime @default(now())
+
+  @@unique([seekerId, jobId])
+  @@index([recruiterId])
+}
