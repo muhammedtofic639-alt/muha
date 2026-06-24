@@ -31,7 +31,7 @@ export default function SeekerPage() {
       body: JSON.stringify({ actorId: DEMO_SEEKER_ACCOUNT_ID, jobId: card.data.id, action }),
     });
     const data = await res.json();
-    return { matched: Boolean(data.matched) };
+    return { matched: Boolean(data.matched), partnerChatUrl: data.partnerChatUrl };
   }
 
   async function handleRateCompany(companyAccountId: string, rating: number) {

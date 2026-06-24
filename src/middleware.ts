@@ -19,9 +19,9 @@ export async function middleware(req: NextRequest) {
   const session = token ? await verifySession(token) : null;
 
   if (!session) {
-    const loginUrl = new URL("/login", req.url);
-    loginUrl.searchParams.set("redirectTo", pathname);
-    return NextResponse.redirect(loginUrl);
+    // No valid session — bounce to the launch splash ("/"), which re-runs the
+    // Telegram initData handshake and routes the user back to the right place.
+    return NextResponse.redirect(new URL("/", req.url));
   }
 
   return NextResponse.next();

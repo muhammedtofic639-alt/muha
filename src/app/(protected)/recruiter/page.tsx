@@ -51,7 +51,7 @@ export default function RecruiterPage() {
       }),
     });
     const data = await res.json();
-    return { matched: Boolean(data.matched) };
+    return { matched: Boolean(data.matched), partnerChatUrl: data.partnerChatUrl };
   }
 
   return (

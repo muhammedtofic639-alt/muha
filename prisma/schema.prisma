@@ -41,13 +41,13 @@ enum WorkMode {
 
 model Account {
   id            String        @id @default(cuid())
-  email         String        @unique
-  passwordHash  String
-  status        AccountStatus @default(PENDING_APPROVAL)
 
-  // Optional Telegram linkage, kept for the chat handoff on Matches — not used for auth.
-  telegramId    String?       @unique
+  // Telegram is the sole identity/auth source. `telegramId` is populated from
+  // validated initData (see src/lib/telegram/validate.ts) — no passwords are
+  // ever stored. `username` drives the direct chat deep-link on a match.
+  telegramId    String        @unique
   username      String?
+  status        AccountStatus @default(PENDING_APPROVAL)
 
   role          Role
   createdAt     DateTime      @default(now())

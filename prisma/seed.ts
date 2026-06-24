@@ -1,15 +1,10 @@
 import { PrismaClient, Role, AccountStatus, JobType, WorkMode } from "@prisma/client";
-import bcrypt from "bcryptjs";
 
 const prisma = new PrismaClient();
 
 async function main() {
-  const passwordHash = await bcrypt.hash("password123", 10);
-
   const recruiterAccount = await prisma.account.create({
     data: {
-      email: "hr@addistech.example",
-      passwordHash,
       status: AccountStatus.APPROVED,
       telegramId: "1001",
       username: "addis_tech_hr",
@@ -44,8 +39,6 @@ async function main() {
 
   const seekerAccount = await prisma.account.create({
     data: {
-      email: "selam@example.com",
-      passwordHash,
       status: AccountStatus.APPROVED,
       telegramId: "2001",
       username: "selam_dev",
@@ -78,9 +71,9 @@ async function main() {
 
   const pendingSeekerAccount = await prisma.account.create({
     data: {
-      email: "yonas@example.com",
-      passwordHash,
       status: AccountStatus.PENDING_APPROVAL,
+      telegramId: "3001",
+      username: "yonas_b",
       role: Role.SEEKER,
       seekerProfile: {
         create: {

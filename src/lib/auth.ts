@@ -1,4 +1,3 @@
-import bcrypt from "bcryptjs";
 import { SignJWT, jwtVerify } from "jose";
 
 export const SESSION_COOKIE = "abyssinia_session";
@@ -10,14 +9,6 @@ function getSecretKey() {
     throw new Error("SESSION_SECRET environment variable is not set");
   }
   return new TextEncoder().encode(secret);
-}
-
-export async function hashPassword(password: string) {
-  return bcrypt.hash(password, 10);
-}
-
-export async function verifyPassword(password: string, hash: string) {
-  return bcrypt.compare(password, hash);
 }
 
 export interface SessionPayload {

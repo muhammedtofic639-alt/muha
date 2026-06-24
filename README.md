@@ -1,18 +1,21 @@
 # Abyssinia Jobs
 
-Swipe-based job matching app, built as a Telegram Web App (TWA). Accounts go
-through an email/password signup, role selection, and a document verification
-gate before they can access the swipe decks. Job seekers swipe on job cards
-(photo + 20s video pitch shown to recruiters); recruiters swipe on candidates
-for a specific opening. A mutual right-swipe creates a Match. Seekers can also
-leave a 1-10 star rating for a company after viewing its job card.
+Swipe-based job matching app, built **natively as a Telegram Mini App**.
+Authentication happens automatically via validated Telegram `initData` — there
+are no passwords. New users pick a role and pass a document verification gate
+before they can access the swipe decks. Job seekers swipe on job cards;
+recruiters swipe on candidates (photo + 20s video pitch) for a specific
+opening. A mutual right-swipe creates a Match and surfaces a direct Telegram
+chat link to the other person. Seekers can also leave a 1-10 star rating for a
+company.
 
 ## Stack
 
 - Next.js 14 (App Router) + TypeScript
 - Tailwind CSS, Framer Motion, Lucide React
+- `@telegram-apps/sdk-react` for the Mini App runtime (theme, viewport, links)
 - PostgreSQL via Prisma
-- `bcryptjs` for password hashing, `jose` for JWT sessions
+- `jose` for JWT session cookies (issued after initData validation)
 
 ## Directory Structure
 
@@ -21,12 +24,9 @@ prisma/
   schema.prisma                Accounts, Profiles, Jobs, Swipes, Matches, CompanyRating
   seed.ts                      Demo data (approved seeker/recruiter, one pending account)
 src/
-  middleware.ts                Edge check: session cookie present? else -> /login
+  middleware.ts                Edge check: session cookie present? else -> / (re-auth)
   app/
-    page.tsx                   Landing page (sign up / sign in / view matches)
-    (auth)/
-      signup/page.tsx          Email + password signup
-      login/page.tsx           Email + password login
+    page.tsx                   Launch splash (Telegram initData handshake runs here)
     onboarding/
       role/page.tsx            Step 2: choose Job Seeker vs Employer
       documents/page.tsx       Step 3: upload verification documents
@@ -38,8 +38,7 @@ src/
       recruiter/page.tsx        Candidate feed (recruiter view)
       matches/page.tsx          Matches dashboard + Telegram chat links
     api/
-      auth/signup/route.ts      POST: create account (PENDING_APPROVAL)
-      auth/login/route.ts       POST: verify password, set session cookie
+      auth/telegram/route.ts    POST: validate initData, upsert account, set session
       auth/logout/route.ts      POST: clear session cookie
       onboarding/role/route.ts      POST: set Account.role
       onboarding/documents/route.ts POST: multipart upload, create/upsert profile
@@ -49,7 +48,6 @@ src/
       jobs/route.ts                GET: a recruiter's job postings
       matches/route.ts             GET: matches for an account
   components/
-    AuthForm.tsx                Shared login/signup form
     DocumentUploadForm.tsx       Role-conditional document upload form
     SwipeDeck.tsx                Draggable card stack (Framer Motion)
     JobCard.tsx                  Job card with employer StarRating
@@ -58,7 +56,11 @@ src/
     MatchModal.tsx
     TopBar.tsx
   lib/
-    auth.ts                     Password hashing + JWT session sign/verify
+    telegram/
+      validate.ts               Server-side initData HMAC signature validation
+      provider.tsx              Client SDK boot + auto-auth + theme/viewport CSS vars
+      chatLink.ts               Build t.me / tg://user chat deep-links
+    auth.ts                     JWT session sign/verify
     session.ts                   getCurrentAccount() for server components
     upload.ts                    Storage adapter placeholder (S3/Cloudinary)
     swipe.ts                     Mutual-like match detection (transactional)
@@ -70,7 +72,7 @@ src/
 ## Getting Started
 
 ```bash
-cp .env.example .env   # set DATABASE_URL and SESSION_SECRET
+cp .env.example .env   # set DATABASE_URL, TELEGRAM_BOT_TOKEN, SESSION_SECRET
 npm install
 npm run db:generate     # generate the Prisma client
 npm run db:push         # create tables
@@ -78,31 +80,44 @@ npm run db:seed         # demo recruiter + seeker + pending account + job
 npm run dev
 ```
 
-## Verification Gate (Auth & Onboarding)
+To test inside Telegram, expose the dev server (e.g. via a tunnel) and set the
+URL as your bot's Mini App in @BotFather.
 
-1. **Sign up** (`/signup`) — email + password, creates an `Account` with
-   `status = PENDING_APPROVAL` and no role yet.
-2. **Role selection** (`/onboarding/role`) — choose Job Seeker or Employer;
-   sets `Account.role`.
-3. **Document upload** (`/onboarding/documents`) — seekers upload a
-   Government ID; employers upload a Commercial License and the owner's
-   Government ID. Files go through `uploadFile()` (`src/lib/upload.ts`),
-   a placeholder adapter that throws a clear error if S3/Cloudinary env vars
-   are set but returns a stable placeholder URL otherwise, so the rest of the
-   app is testable before real storage is wired up.
+## Telegram Authentication & Onboarding
+
+Authentication is fully Telegram-native — there are no passwords.
+
+1. **Launch & auto-auth** — `TelegramProvider` (`src/lib/telegram/provider.tsx`,
+   mounted in the root layout) boots `@telegram-apps/sdk-react`, reads the raw
+   `initData`, and POSTs it to `/api/auth/telegram`. The server validates the
+   HMAC signature (`src/lib/telegram/validate.ts`) using `TELEGRAM_BOT_TOKEN`
+   and rejects launches older than 24h. On success it upserts the `Account`
+   (keyed by `telegramId`) and issues a `jose` session cookie, then returns the
+   path the client should route to. Opened outside Telegram, the app shows an
+   "Open in Telegram" notice instead.
+2. **Role selection** (`/onboarding/role`) — choose Job Seeker or Employer.
+3. **Document upload** (`/onboarding/documents`) — seekers upload a Government
+   ID; employers upload a Commercial License and the owner's Government ID,
+   via `uploadFile()` (`src/lib/upload.ts`), a placeholder S3/Cloudinary
+   adapter. Submitting (re-)sets `status = PENDING_APPROVAL`.
 4. **Admin lockout** — `(protected)/layout.tsx` is a Server Component that
-   loads the live `Account.status` from the database on every request. If it
-   is `PENDING_APPROVAL`, the user is redirected to `/pending` ("Under
-   Review — we will notify you via email once approved"); if `REJECTED`, to
-   `/rejected`. Only `APPROVED` accounts reach `/seeker`, `/recruiter`, or
-   `/matches`.
+   loads the live `Account.status` on every request. `PENDING_APPROVAL` →
+   `/pending` ("Under Review"); `REJECTED` → `/rejected`. Only `APPROVED`
+   accounts reach the swipe decks.
 
 Session JWTs (`src/lib/auth.ts`) carry only `{ accountId, role }`, never
-`status` — so an admin approving or rejecting an account takes effect
-immediately on the next request, with no re-login required. `src/middleware.ts`
-runs on the Edge and only checks that a valid session cookie exists (it can't
-reach Postgres); the live status check happens in the Node-runtime protected
-layout.
+`status` — so an admin approving/rejecting takes effect on the next request
+with no re-auth. `src/middleware.ts` runs on the Edge and only checks the
+session cookie (it can't reach Postgres); the live status check happens in the
+Node-runtime protected layout.
+
+## Telegram-Optimized Viewport
+
+`TelegramProvider` mounts the SDK's theme and viewport scopes and binds them to
+CSS variables. The root layout sizes itself to `--tg-viewport-stable-height`
+(with a `100dvh` fallback) and pads for `--tg-safe-area-inset-*`, and the
+viewport meta uses `viewport-fit=cover` — so the UI fills the Telegram webview
+exactly and stays clear of the Telegram header and the device home indicator.
 
 ## Dual-Slide Swipe Cards
 
@@ -131,7 +146,11 @@ job id for seekers, or `jobId:candidateAccountId` for recruiters — this keeps
 the dedupe constraint NULL-safe in Postgres. `recordSwipe` (`src/lib/swipe.ts`)
 checks for the opposing LIKE and upserts the `Match` row inside the same
 transaction as the swipe, so concurrent swipes can't create duplicate or
-missed matches.
+missed matches. On a match, `recordSwipe` also resolves the partner's Telegram
+chat link (`src/lib/telegram/chatLink.ts`) — `t.me/<username>` when public,
+else `tg://user?id=<id>` — and returns it so the `MatchModal` can offer an
+instant "Message on Telegram" button (opened natively via `openTelegramLink`).
+The Matches dashboard builds the same links for every prior match.
 
 ## Feed Query Guarantees
 

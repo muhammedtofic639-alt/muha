@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { Role, SwipeAction } from "@prisma/client";
+import { telegramChatUrl } from "@/lib/telegram/chatLink";
 
 export class SwipeError extends Error {}
 
@@ -15,6 +16,8 @@ interface SwipeResult {
   swipeId: string;
   matched: boolean;
   matchId?: string;
+  /** Direct Telegram chat link to the matched partner, set only on a match. */
+  partnerChatUrl?: string | null;
 }
 
 /**
@@ -39,7 +42,7 @@ export async function recordSwipe(input: SwipeInput): Promise<SwipeResult> {
 
       const job = await tx.job.findUniqueOrThrow({
         where: { id: input.jobId },
-        include: { company: true },
+        include: { company: { include: { account: true } } },
       });
 
       const recruiterLike = await tx.swipe.findFirst({
@@ -64,7 +67,13 @@ export async function recordSwipe(input: SwipeInput): Promise<SwipeResult> {
         },
       });
 
-      return { swipeId: swipe.id, matched: true, matchId: match.id };
+      const recruiterAccount = job.company.account;
+      return {
+        swipeId: swipe.id,
+        matched: true,
+        matchId: match.id,
+        partnerChatUrl: telegramChatUrl(recruiterAccount.username, recruiterAccount.telegramId),
+      };
     }
 
     // Recruiter swiping a candidate for a specific job opening.
@@ -111,6 +120,14 @@ export async function recordSwipe(input: SwipeInput): Promise<SwipeResult> {
       },
     });
 
-    return { swipeId: swipe.id, matched: true, matchId: match.id };
+    const seekerAccount = await tx.account.findUniqueOrThrow({
+      where: { id: input.targetAccountId },
+    });
+    return {
+      swipeId: swipe.id,
+      matched: true,
+      matchId: match.id,
+      partnerChatUrl: telegramChatUrl(seekerAccount.username, seekerAccount.telegramId),
+    };
   });
 }

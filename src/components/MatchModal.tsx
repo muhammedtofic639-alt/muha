@@ -1,9 +1,26 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Sparkles, X } from "lucide-react";
+import { openTelegramLink } from "@telegram-apps/sdk-react";
+import { Sparkles, X, MessageCircle } from "lucide-react";
 
-export function MatchModal({ partnerName, onClose }: { partnerName: string; onClose: () => void }) {
+function openChat(url: string) {
+  if (url.startsWith("https://t.me/") && openTelegramLink.isAvailable()) {
+    openTelegramLink(url);
+  } else {
+    window.open(url, "_blank", "noopener,noreferrer");
+  }
+}
+
+export function MatchModal({
+  partnerName,
+  chatUrl,
+  onClose,
+}: {
+  partnerName: string;
+  chatUrl?: string | null;
+  onClose: () => void;
+}) {
   return (
     <motion.div
       className="fixed inset-0 z-50 flex items-center justify-center bg-navy-950/70 px-6"
@@ -36,10 +53,20 @@ export function MatchModal({ partnerName, onClose }: { partnerName: string; onCl
         <p className="mt-2 text-[15px] text-navy-600">
           You and {partnerName} both swiped right. Head to your matches to start the conversation.
         </p>
+        {chatUrl && (
+          <button
+            type="button"
+            onClick={() => openChat(chatUrl)}
+            className="mt-6 flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-gold-500 py-3 text-sm font-semibold text-navy-900 transition-colors duration-200 hover:bg-gold-400"
+          >
+            <MessageCircle size={18} aria-hidden="true" />
+            Message on Telegram
+          </button>
+        )}
         <button
           type="button"
           onClick={onClose}
-          className="mt-6 w-full cursor-pointer rounded-xl bg-navy-900 py-3 text-sm font-semibold text-white transition-colors duration-200 hover:bg-navy-800"
+          className={`${chatUrl ? "mt-2" : "mt-6"} w-full cursor-pointer rounded-xl bg-navy-900 py-3 text-sm font-semibold text-white transition-colors duration-200 hover:bg-navy-800`}
         >
           Keep Swiping
         </button>

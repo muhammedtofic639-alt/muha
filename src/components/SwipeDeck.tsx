@@ -15,7 +15,10 @@ export type DeckCard =
 interface SwipeDeckProps {
   cards: DeckCard[];
   isLoading: boolean;
-  onSwipe: (card: DeckCard, action: "LIKE" | "PASS") => Promise<{ matched: boolean }>;
+  onSwipe: (
+    card: DeckCard,
+    action: "LIKE" | "PASS"
+  ) => Promise<{ matched: boolean; partnerChatUrl?: string | null }>;
   matchPartnerName?: (card: DeckCard) => string;
   seekerAccountId?: string;
   onRateCompany?: (companyAccountId: string, rating: number) => Promise<void>;
@@ -34,6 +37,7 @@ export function SwipeDeck({
   const [stack, setStack] = useState(cards);
   const [exitDirection, setExitDirection] = useState<"left" | "right" | null>(null);
   const [matchedCard, setMatchedCard] = useState<DeckCard | null>(null);
+  const [matchedChatUrl, setMatchedChatUrl] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Keep local stack in sync when a fresh page of cards arrives.
@@ -54,6 +58,7 @@ export function SwipeDeck({
       setStack((prev) => prev.slice(1));
       if (result.matched) {
         setMatchedCard(top);
+        setMatchedChatUrl(result.partnerChatUrl ?? null);
       }
     } finally {
       setIsSubmitting(false);
@@ -145,6 +150,7 @@ export function SwipeDeck({
         {matchedCard && (
           <MatchModal
             partnerName={matchPartnerName ? matchPartnerName(matchedCard) : "your match"}
+            chatUrl={matchedChatUrl}
             onClose={() => setMatchedCard(null)}
           />
         )}
