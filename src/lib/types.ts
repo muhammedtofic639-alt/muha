@@ -29,7 +29,6 @@ export interface CandidateCardData {
   skillsDescription: string | null;
   profilePhotoUrl: string | null;
   videoPitchUrl: string | null;
-  videoPitchSeconds: number | null;
   avatarUrl: string | null;
   location: string | null;
 }

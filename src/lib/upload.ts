@@ -1,8 +1,6 @@
 import { randomUUID } from "crypto";
 
-export const MAX_VIDEO_PITCH_SECONDS = 20;
-
-export type UploadKind = "government_id" | "commercial_license" | "owner_id" | "profile_photo" | "video_pitch";
+export type UploadKind = "government_id" | "commercial_license" | "owner_id" | "profile_photo";
 
 /**
  * Storage adapter placeholder. Wire this up to a real provider before going

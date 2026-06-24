@@ -1,29 +1,25 @@
 "use client";
 
-import { useRef, useState } from "react";
-import { Play, Pause, MapPin, BriefcaseBusiness, Image as ImageIcon, Video as VideoIcon } from "lucide-react";
+import { useState } from "react";
+import { MapPin, BriefcaseBusiness, Image as ImageIcon, Video as VideoIcon } from "lucide-react";
 import { CandidateCardData } from "@/lib/types";
-import { MAX_VIDEO_PITCH_SECONDS } from "@/lib/upload";
+import { getVideoEmbed } from "@/lib/videoEmbed";
 
 /**
  * Card slide 1 is the seeker's profile photo; tapping the right half (or the
- * "Play pitch" pill) advances to slide 2, a <= 20s elevator-pitch video.
- * Tapping the left half on slide 2 goes back to the photo. The skills
- * overlay text stays visible on both slides. Dragging the card (handled by
- * the parent SwipeDeck) still works regardless of which slide is showing.
+ * "Play pitch" pill) advances to slide 2, the elevator-pitch video — embedded
+ * via iframe from an external YouTube/TikTok link rather than an uploaded
+ * file, so there's no video hosting cost. Tapping the left half on slide 2
+ * goes back to the photo. The skills overlay text stays visible on both
+ * slides. Dragging the card (handled by the parent SwipeDeck) still works
+ * regardless of which slide is showing.
  */
 export function DualSlideCard({ candidate }: { candidate: CandidateCardData }) {
   const [slide, setSlide] = useState<0 | 1>(0);
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const [isPlaying, setIsPlaying] = useState(false);
 
   function goToSlide(next: 0 | 1) {
     if (next === slide) return;
     setSlide(next);
-    if (next === 0) {
-      videoRef.current?.pause();
-      setIsPlaying(false);
-    }
   }
 
   function handleTapZone(e: React.MouseEvent<HTMLDivElement>) {
@@ -32,27 +28,7 @@ export function DualSlideCard({ candidate }: { candidate: CandidateCardData }) {
     goToSlide(tappedRight ? 1 : 0);
   }
 
-  function togglePlay() {
-    const video = videoRef.current;
-    if (!video) return;
-    if (video.paused) {
-      video.play();
-      setIsPlaying(true);
-    } else {
-      video.pause();
-      setIsPlaying(false);
-    }
-  }
-
-  // Hard safety net: cut playback at MAX_VIDEO_PITCH_SECONDS even if a video
-  // file slipped past upload-time validation.
-  function handleTimeUpdate() {
-    const video = videoRef.current;
-    if (video && video.currentTime >= MAX_VIDEO_PITCH_SECONDS) {
-      video.pause();
-      setIsPlaying(false);
-    }
-  }
+  const embed = candidate.videoPitchUrl ? getVideoEmbed(candidate.videoPitchUrl) : null;
 
   return (
     <div className="relative flex h-full w-full flex-col overflow-hidden rounded-3xl bg-navy-900 shadow-card">
@@ -79,44 +55,30 @@ export function DualSlideCard({ candidate }: { candidate: CandidateCardData }) {
               <ImageIcon size={48} aria-hidden="true" />
             </div>
           )
-        ) : candidate.videoPitchUrl ? (
-          <div className="relative h-full w-full">
-            <video
-              ref={videoRef}
-              src={candidate.videoPitchUrl}
-              className="h-full w-full object-cover"
-              playsInline
-              onTimeUpdate={handleTimeUpdate}
-              onEnded={() => setIsPlaying(false)}
+        ) : embed ? (
+          <div className="relative h-full w-full bg-black">
+            <iframe
+              key={embed.embedUrl}
+              src={`${embed.embedUrl}?autoplay=0&playsinline=1`}
+              className="h-full w-full"
+              allow="autoplay; encrypted-media; picture-in-picture"
+              allowFullScreen
+              title={`${candidate.fullName}'s elevator pitch`}
             />
+            {/* The iframe needs full tap/click access for its own player
+                controls, so slide-back is an explicit button instead of an
+                invisible tap zone here. */}
             <button
               type="button"
-              aria-label={isPlaying ? "Pause pitch video" : "Play pitch video"}
+              aria-label="Back to photo"
               onClick={(e) => {
                 e.stopPropagation();
-                togglePlay();
+                goToSlide(0);
               }}
-              className="absolute inset-0 z-20 flex cursor-pointer items-center justify-center"
+              className="absolute left-3 top-3 z-20 rounded-full bg-black/50 px-3 py-1.5 text-xs font-medium text-white"
             >
-              {!isPlaying && (
-                <span className="flex h-16 w-16 items-center justify-center rounded-full bg-white/90 text-navy-900">
-                  <Play size={28} aria-hidden="true" fill="currentColor" />
-                </span>
-              )}
+              ← Photo
             </button>
-            {isPlaying && (
-              <button
-                type="button"
-                aria-label="Pause pitch video"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  togglePlay();
-                }}
-                className="absolute bottom-4 right-4 z-20 flex h-10 w-10 cursor-pointer items-center justify-center rounded-full bg-white/80 text-navy-900"
-              >
-                <Pause size={18} aria-hidden="true" />
-              </button>
-            )}
           </div>
         ) : (
           <div className="flex h-full w-full flex-col items-center justify-center gap-2 bg-navy-800 text-navy-400">
@@ -125,11 +87,14 @@ export function DualSlideCard({ candidate }: { candidate: CandidateCardData }) {
           </div>
         )}
 
-        {/* Invisible left/right tap zones for slide navigation */}
-        <div className="absolute inset-0 z-10 flex" onClick={handleTapZone} role="presentation">
-          <div className="h-full w-1/2 cursor-pointer" aria-hidden="true" />
-          <div className="h-full w-1/2 cursor-pointer" aria-hidden="true" />
-        </div>
+        {/* Invisible left/right tap zones for slide navigation (slide 1 only —
+            slide 2's iframe needs to receive taps/clicks for its own controls). */}
+        {slide === 0 && (
+          <div className="absolute inset-0 z-10 flex" onClick={handleTapZone} role="presentation">
+            <div className="h-full w-1/2 cursor-pointer" aria-hidden="true" />
+            <div className="h-full w-1/2 cursor-pointer" aria-hidden="true" />
+          </div>
+        )}
       </div>
 
       {/* Bottom overlay: name, headline, skills */}

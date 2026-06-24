@@ -43,6 +43,19 @@ export function DocumentUploadForm({ role }: { role: "SEEKER" | "RECRUITER" }) {
             />
           </label>
           <FileField name="governmentId" label="Government ID" icon={<IdCard size={18} aria-hidden="true" />} />
+          <label className="flex flex-col gap-1.5">
+            <span className="text-sm font-medium text-navy-800">Elevator pitch video link</span>
+            <input
+              name="videoPitchUrl"
+              type="url"
+              required
+              placeholder="https://youtube.com/... or https://tiktok.com/..."
+              className="rounded-xl border border-navy-200 bg-white px-3 py-2.5 text-[15px] text-navy-900 outline-none"
+            />
+            <span className="text-xs text-navy-500">
+              Paste a link to a YouTube or TikTok video — no file upload needed.
+            </span>
+          </label>
         </>
       ) : (
         <>

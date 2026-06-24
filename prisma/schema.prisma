@@ -83,9 +83,10 @@ model SeekerProfile {
   governmentIdUrl   String?
 
   // Dual-slide swipe card media: slide 1 is the photo, slide 2 is the pitch video.
+  // videoPitchUrl is an external YouTube/TikTok link, embedded via iframe —
+  // never an uploaded file, so there's no video hosting cost.
   profilePhotoUrl   String?
   videoPitchUrl     String?
-  videoPitchSeconds Int?    // populated by the upload pipeline; must be <= 20
 
   skills            String[]
   skillsDescription String?  // crisp overlay text shown on the card ("primary skill arrays")
