@@ -1,5 +1,6 @@
 import { Building2, MapPin, Wallet } from "lucide-react";
 import { JobCardData, formatSalary } from "@/lib/types";
+import { StarRating } from "@/components/StarRating";
 
 const WORK_MODE_LABEL: Record<string, string> = {
   REMOTE: "Remote",
@@ -14,7 +15,15 @@ const JOB_TYPE_LABEL: Record<string, string> = {
   INTERNSHIP: "Internship",
 };
 
-export function JobCard({ job }: { job: JobCardData }) {
+export function JobCard({
+  job,
+  seekerAccountId,
+  onRateCompany,
+}: {
+  job: JobCardData;
+  seekerAccountId?: string;
+  onRateCompany?: (companyAccountId: string, rating: number) => Promise<void>;
+}) {
   return (
     <div className="flex h-full w-full flex-col overflow-hidden rounded-3xl bg-white shadow-card">
       <div className="flex items-center gap-3 bg-navy-900 px-6 py-5">
@@ -33,6 +42,15 @@ export function JobCard({ job }: { job: JobCardData }) {
       </div>
 
       <div className="flex flex-1 flex-col gap-4 overflow-y-auto px-6 py-5">
+        <StarRating
+          average={job.company.rating.average}
+          count={job.company.rating.count}
+          onRate={
+            seekerAccountId && onRateCompany
+              ? (rating) => onRateCompany(job.company.accountId, rating)
+              : undefined
+          }
+        />
         <div>
           <h2 className="font-display text-2xl font-bold leading-tight text-navy-900">{job.title}</h2>
           <p className="mt-2 flex items-center gap-1.5 text-base font-semibold text-gold-600">

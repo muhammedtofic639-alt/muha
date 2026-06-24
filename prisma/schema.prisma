@@ -12,6 +12,15 @@ enum Role {
   RECRUITER
 }
 
+// PENDING_APPROVAL: signed up, documents under admin review — locked out of the feed.
+// APPROVED: admin verified documents — full access to swipe decks.
+// REJECTED: admin rejected documents — locked out, shown a rejection screen.
+enum AccountStatus {
+  PENDING_APPROVAL
+  APPROVED
+  REJECTED
+}
+
 enum SwipeAction {
   LIKE
   PASS
@@ -31,12 +40,18 @@ enum WorkMode {
 }
 
 model Account {
-  id            String   @id @default(cuid())
-  telegramId    String   @unique
+  id            String        @id @default(cuid())
+  email         String        @unique
+  passwordHash  String
+  status        AccountStatus @default(PENDING_APPROVAL)
+
+  // Optional Telegram linkage, kept for the chat handoff on Matches — not used for auth.
+  telegramId    String?       @unique
   username      String?
+
   role          Role
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
 
   seekerProfile   SeekerProfile?
   companyProfile  CompanyProfile?
@@ -44,8 +59,11 @@ model Account {
   swipesGiven     Swipe[]  @relation("SwipeActor")
   matchesAsSeeker Match[]  @relation("MatchSeeker")
   matchesAsRecruiter Match[] @relation("MatchRecruiter")
+  ratingsGiven    CompanyRating[] @relation("RatingSeeker")
+  ratingsReceived CompanyRating[] @relation("RatingCompany")
 
   @@index([role])
+  @@index([status])
 }
 
 model SeekerProfile {
@@ -53,13 +71,26 @@ model SeekerProfile {
   accountId   String   @unique
   account     Account  @relation(fields: [accountId], references: [id], onDelete: Cascade)
 
+  // Required at signup, optional below: the documents step (Step 3 of onboarding)
+  // creates this row with just fullName + the government ID; the rest is filled
+  // in by a later "complete your profile" step before the seeker can be approved.
   fullName    String
-  headline    String
+  headline    String?
   yearsExp    Int      @default(0)
-  bio         String
-  skills      String[]
-  avatarUrl   String?
-  location    String?
+  bio         String?
+
+  // Verification gate document — required before an admin can approve the account.
+  governmentIdUrl   String?
+
+  // Dual-slide swipe card media: slide 1 is the photo, slide 2 is the pitch video.
+  profilePhotoUrl   String?
+  videoPitchUrl     String?
+  videoPitchSeconds Int?    // populated by the upload pipeline; must be <= 20
+
+  skills            String[]
+  skillsDescription String?  // crisp overlay text shown on the card ("primary skill arrays")
+  avatarUrl         String?
+  location          String?
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -75,10 +106,38 @@ model CompanyProfile {
   about       String?
   location    String?
 
+  // Verification gate documents — both required before an admin can approve the account.
+  commercialLicenseUrl String?
+  ownerIdUrl            String?
+
   jobs        Job[]
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+}
+
+// 1-10 star rating (half-steps allowed, e.g. 7.5) that a seeker leaves for a company
+// after matching. One rating per seeker/company pair; the company's running average
+// is computed on read from this table rather than stored redundantly.
+model CompanyRating {
+  id          String   @id @default(cuid())
+
+  seekerId    String
+  seeker      Account  @relation("RatingSeeker", fields: [seekerId], references: [id], onDelete: Cascade)
+
+  companyId   String
+  company     Account  @relation("RatingCompany", fields: [companyId], references: [id], onDelete: Cascade)
+
+  // Enforced in the API layer (1.0-10.0 in 0.5 steps); Postgres CHECK constraints
+  // aren't expressible in the Prisma schema DSL, so add one in a migration:
+  //   ALTER TABLE "CompanyRating" ADD CONSTRAINT rating_range CHECK (rating >= 1 AND rating <= 10);
+  rating      Float
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([seekerId, companyId])
+  @@index([companyId])
 }
 
 model Job {

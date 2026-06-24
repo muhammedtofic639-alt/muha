@@ -5,7 +5,7 @@ import { motion, AnimatePresence, PanInfo } from "framer-motion";
 import { Heart, X } from "lucide-react";
 import { JobCardData, CandidateCardData } from "@/lib/types";
 import { JobCard } from "@/components/JobCard";
-import { CandidateCard } from "@/components/CandidateCard";
+import { DualSlideCard } from "@/components/DualSlideCard";
 import { MatchModal } from "@/components/MatchModal";
 
 export type DeckCard =
@@ -17,11 +17,20 @@ interface SwipeDeckProps {
   isLoading: boolean;
   onSwipe: (card: DeckCard, action: "LIKE" | "PASS") => Promise<{ matched: boolean }>;
   matchPartnerName?: (card: DeckCard) => string;
+  seekerAccountId?: string;
+  onRateCompany?: (companyAccountId: string, rating: number) => Promise<void>;
 }
 
 const SWIPE_THRESHOLD = 120;
 
-export function SwipeDeck({ cards, isLoading, onSwipe, matchPartnerName }: SwipeDeckProps) {
+export function SwipeDeck({
+  cards,
+  isLoading,
+  onSwipe,
+  matchPartnerName,
+  seekerAccountId,
+  onRateCompany,
+}: SwipeDeckProps) {
   const [stack, setStack] = useState(cards);
   const [exitDirection, setExitDirection] = useState<"left" | "right" | null>(null);
   const [matchedCard, setMatchedCard] = useState<DeckCard | null>(null);
@@ -101,7 +110,11 @@ export function SwipeDeck({ cards, isLoading, onSwipe, matchPartnerName }: Swipe
               whileDrag={{ rotate: 8 }}
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
             >
-              {card.kind === "job" ? <JobCard job={card.data} /> : <CandidateCard candidate={card.data} />}
+              {card.kind === "job" ? (
+                <JobCard job={card.data} seekerAccountId={seekerAccountId} onRateCompany={onRateCompany} />
+              ) : (
+                <DualSlideCard candidate={card.data} />
+              )}
             </motion.div>
           ))}
         </AnimatePresence>

@@ -9,19 +9,34 @@ export interface JobCardData {
   salaryMax: number | null;
   salaryPeriod: string;
   currency: string;
-  company: { companyName: string; logoUrl: string | null; location: string | null };
+  company: {
+    accountId: string;
+    companyName: string;
+    logoUrl: string | null;
+    location: string | null;
+    rating: { average: number | null; count: number };
+  };
 }
 
 export interface CandidateCardData {
   id: string;
   accountId: string;
   fullName: string;
-  headline: string;
+  headline: string | null;
   yearsExp: number;
-  bio: string;
+  bio: string | null;
   skills: string[];
+  skillsDescription: string | null;
+  profilePhotoUrl: string | null;
+  videoPitchUrl: string | null;
+  videoPitchSeconds: number | null;
   avatarUrl: string | null;
   location: string | null;
+}
+
+export interface CompanyRatingSummary {
+  average: number | null;
+  count: number;
 }
 
 export function formatSalary(job: Pick<JobCardData, "salaryMin" | "salaryMax" | "salaryPeriod" | "currency">) {

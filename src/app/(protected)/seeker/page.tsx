@@ -34,6 +34,14 @@ export default function SeekerPage() {
     return { matched: Boolean(data.matched) };
   }
 
+  async function handleRateCompany(companyAccountId: string, rating: number) {
+    await fetch("/api/ratings", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ seekerAccountId: DEMO_SEEKER_ACCOUNT_ID, companyAccountId, rating }),
+    });
+  }
+
   return (
     <>
       <TopBar active="seeker" />
@@ -42,6 +50,8 @@ export default function SeekerPage() {
         isLoading={isLoading}
         onSwipe={handleSwipe}
         matchPartnerName={(card) => (card.kind === "job" ? card.data.company.companyName : "")}
+        seekerAccountId={DEMO_SEEKER_ACCOUNT_ID}
+        onRateCompany={handleRateCompany}
       />
     </>
   );

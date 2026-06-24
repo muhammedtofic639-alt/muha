@@ -8,7 +8,7 @@ const PAGE_SIZE = 10;
  * but is included for safety in case roles change.
  */
 export async function getJobFeedForSeeker(seekerAccountId: string) {
-  return prisma.job.findMany({
+  const jobs = await prisma.job.findMany({
     where: {
       isActive: true,
       company: { accountId: { not: seekerAccountId } },
@@ -17,11 +17,30 @@ export async function getJobFeedForSeeker(seekerAccountId: string) {
       },
     },
     include: {
-      company: { select: { companyName: true, logoUrl: true, location: true } },
+      company: { select: { accountId: true, companyName: true, logoUrl: true, location: true } },
     },
     orderBy: { createdAt: "desc" },
     take: PAGE_SIZE,
   });
+
+  if (jobs.length === 0) return [];
+
+  const companyAccountIds = [...new Set(jobs.map((job) => job.company.accountId))];
+  const ratingGroups = await prisma.companyRating.groupBy({
+    by: ["companyId"],
+    where: { companyId: { in: companyAccountIds } },
+    _avg: { rating: true },
+    _count: true,
+  });
+  const ratingByCompany = new Map(ratingGroups.map((g) => [g.companyId, { average: g._avg.rating, count: g._count }]));
+
+  return jobs.map((job) => ({
+    ...job,
+    company: {
+      ...job.company,
+      rating: ratingByCompany.get(job.company.accountId) ?? { average: null, count: 0 },
+    },
+  }));
 }
 
 /**
@@ -37,8 +56,12 @@ export async function getCandidateFeedForJob(jobId: string, recruiterAccountId: 
   const excludedAccountIds = [recruiterAccountId, ...alreadySwiped.map((s) => s.targetAccountId as string)];
 
   return prisma.seekerProfile.findMany({
-    where: { accountId: { notIn: excludedAccountIds } },
-    include: { account: { select: { username: true } } },
+    where: {
+      accountId: { notIn: excludedAccountIds },
+      // Only surface candidates who've actually finished their card media —
+      // an empty photo/video slide isn't swipeable.
+      profilePhotoUrl: { not: null },
+    },
     orderBy: { createdAt: "desc" },
     take: PAGE_SIZE,
   });

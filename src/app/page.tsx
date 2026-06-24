@@ -17,18 +17,18 @@ export default function HomePage() {
       </div>
       <div className="flex w-full max-w-xs flex-col gap-3">
         <Link
-          href="/seeker"
+          href="/signup"
           className="flex cursor-pointer items-center justify-center gap-2 rounded-xl bg-navy-900 py-3 text-sm font-semibold text-white transition-colors duration-200 hover:bg-navy-800"
         >
           <Briefcase size={18} aria-hidden="true" />
-          I&apos;m looking for a job
+          Create an account
         </Link>
         <Link
-          href="/recruiter"
+          href="/login"
           className="flex cursor-pointer items-center justify-center gap-2 rounded-xl border-2 border-navy-900 py-3 text-sm font-semibold text-navy-900 transition-colors duration-200 hover:bg-navy-100"
         >
           <Users2 size={18} aria-hidden="true" />
-          I&apos;m hiring
+          Sign in
         </Link>
         <Link
           href="/matches"
