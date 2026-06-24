@@ -4,7 +4,7 @@ import { getCurrentAccount } from "@/lib/session";
 
 export default async function RejectedPage() {
   const account = await getCurrentAccount();
-  if (!account) redirect("/login");
+  if (!account) redirect("/");
   if (account.status !== "REJECTED") redirect("/");
 
   return (

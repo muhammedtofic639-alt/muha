@@ -11,7 +11,7 @@ export default async function ProtectedLayout({ children }: { children: React.Re
   const account = await getCurrentAccount();
 
   if (!account) {
-    redirect("/login");
+    redirect("/");
   }
 
   if (account.status === "PENDING_APPROVAL") {

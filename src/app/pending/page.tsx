@@ -4,7 +4,7 @@ import { getCurrentAccount } from "@/lib/session";
 
 export default async function PendingPage() {
   const account = await getCurrentAccount();
-  if (!account) redirect("/login");
+  if (!account) redirect("/");
   if (account.status === "APPROVED") redirect("/");
   if (account.status === "REJECTED") redirect("/rejected");
 
@@ -16,11 +16,11 @@ export default async function PendingPage() {
       <div>
         <h1 className="font-display text-2xl font-bold text-navy-900">Under Review</h1>
         <p className="mt-2 max-w-xs text-[15px] leading-relaxed text-navy-600">
-          We&apos;re verifying your documents. We will notify you via email once your account is approved
+          We&apos;re verifying your documents. You can check back here once your account is approved
           — this usually takes less than 24 hours.
         </p>
       </div>
-      <p className="text-sm text-navy-400">{account.email}</p>
+      {account.username && <p className="text-sm text-navy-400">@{account.username}</p>}
     </main>
   );
 }

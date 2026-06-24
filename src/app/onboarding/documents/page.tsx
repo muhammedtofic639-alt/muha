@@ -6,7 +6,7 @@ import { DocumentUploadForm } from "@/components/DocumentUploadForm";
 export default async function DocumentsPage() {
   const account = await getCurrentAccount();
   if (!account) {
-    redirect("/login");
+    redirect("/");
   }
 
   const categories = await prisma.category.findMany({
