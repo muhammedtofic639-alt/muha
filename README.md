@@ -111,6 +111,16 @@ with no re-auth. `src/middleware.ts` runs on the Edge and only checks the
 session cookie (it can't reach Postgres); the live status check happens in the
 Node-runtime protected layout.
 
+## Admin Verification Queue
+
+Admins are an allowlist of Telegram user ids in `ADMIN_TELEGRAM_IDS`
+(`src/lib/admin.ts`) — no special DB role, so no migration. The `/admin` page
+(`src/app/admin/page.tsx`) is server-gated: non-admins are redirected to `/`.
+It lists every `PENDING_APPROVAL` account with links to the submitted
+documents and Approve / Reject buttons that PATCH `/api/admin/accounts/[id]`.
+Because the protected layout reads `Account.status` live, a decision takes
+effect for the user on their very next request — no re-login.
+
 ## Telegram-Optimized Viewport
 
 `TelegramProvider` mounts the SDK's theme and viewport scopes and binds them to
