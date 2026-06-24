@@ -2,12 +2,63 @@ import { PrismaClient, Role, AccountStatus, JobType, WorkMode } from "@prisma/cl
 
 const prisma = new PrismaClient();
 
+// Broad coverage across the local job market — not just tech — so every
+// posting and every seeker can find a fitting primary category.
 const CATEGORY_NAMES = [
+  // Tech & engineering
   "Software Engineer",
-  "Video Editor",
-  "Graphic Designer",
+  "Mobile App Developer",
+  "Data Analyst",
+  "Data Scientist",
+  "DevOps Engineer",
+  "QA / Test Engineer",
+  "IT Support Technician",
+  "Network Administrator",
+  "Cybersecurity Specialist",
   "Civil Engineer",
+  "Mechanical Engineer",
+  "Electrical Engineer",
+  "Architect",
+  // Creative & media
+  "Graphic Designer",
+  "UI/UX Designer",
+  "Video Editor",
+  "Photographer",
+  "Content Writer",
+  "Animator",
+  // Marketing & sales
   "Digital Marketer",
+  "Social Media Manager",
+  "Sales Representative",
+  "Business Development Manager",
+  // Business & finance
+  "Accountant",
+  "Financial Analyst",
+  "Human Resources Specialist",
+  "Project Manager",
+  "Administrative Assistant",
+  "Customer Service Representative",
+  "Legal Counsel",
+  // Healthcare
+  "Nurse",
+  "Pharmacist",
+  "Medical Doctor",
+  "Laboratory Technician",
+  // Education
+  "Teacher",
+  "Tutor",
+  "Translator",
+  // Trades & logistics
+  "Electrician",
+  "Plumber",
+  "Driver",
+  "Warehouse Worker",
+  "Construction Worker",
+  // Hospitality & retail
+  "Chef / Cook",
+  "Hotel Staff",
+  "Retail Associate",
+  "Event Planner",
 ];
 
 function slugify(name: string) {
