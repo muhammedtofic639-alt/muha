@@ -14,12 +14,18 @@ export default async function DocumentsPage() {
     orderBy: { name: "asc" },
   });
 
+  const isSeeker = account.role === "SEEKER";
+
   return (
-    <main className="flex flex-1 flex-col items-center justify-center gap-6 px-6 py-10 text-center">
-      <div>
-        <h1 className="font-display text-2xl font-bold text-navy-900">Verify your identity</h1>
-        <p className="mt-1 max-w-xs text-sm text-navy-600">
-          Step 3 of 4 — These documents are reviewed by our team before you can access the feed.
+    <main className="flex flex-1 flex-col items-center px-6 py-10">
+      <div className="mb-7 w-full max-w-sm">
+        <h1 className="mb-1.5 font-display text-[28px] font-bold tracking-tight text-gray-50">
+          {isSeeker ? "Build your profile" : "Verify your business"}
+        </h1>
+        <p className="text-sm text-gray-400">
+          {isSeeker
+            ? "You'll be live and discoverable instantly."
+            : "We review your documents within 24 hrs. You'll be notified when approved."}
         </p>
       </div>
       <DocumentUploadForm role={account.role} categories={categories} />

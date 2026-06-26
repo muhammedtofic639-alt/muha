@@ -23,15 +23,15 @@ export function JobCard({
   onRateCompany?: (companyAccountId: string, rating: number) => Promise<void>;
 }) {
   return (
-    <div className="flex h-full w-full flex-col overflow-hidden rounded-3xl bg-white shadow-card">
-      <div className="flex items-center gap-3 bg-navy-900 px-6 py-5">
-        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gold-500/20 text-gold-400">
+    <div className="flex h-full w-full flex-col overflow-hidden rounded-xl bg-ink-900 shadow-card">
+      <div className="flex items-center gap-3 bg-ink-800 px-6 py-5">
+        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[rgba(212,255,0,0.15)] text-lime-400">
           <Building2 size={24} aria-hidden="true" />
         </div>
         <div>
           <p className="font-display text-lg font-semibold text-white">{job.company.companyName}</p>
           {job.company.location && (
-            <p className="flex items-center gap-1 text-sm text-navy-100">
+            <p className="flex items-center gap-1 text-sm text-white/60">
               <MapPin size={14} aria-hidden="true" />
               {job.company.location}
             </p>
@@ -46,31 +46,31 @@ export function JobCard({
           onRate={onRateCompany ? (rating) => onRateCompany(job.company.accountId, rating) : undefined}
         />
         <div>
-          <h2 className="font-display text-2xl font-bold leading-tight text-navy-900">{job.title}</h2>
-          <p className="mt-2 flex items-center gap-1.5 text-base font-semibold text-gold-600">
+          <h2 className="font-display text-2xl font-bold leading-tight text-gray-50">{job.title}</h2>
+          <p className="mt-2 flex items-center gap-1.5 text-base font-semibold text-lime-400">
             <Wallet size={18} aria-hidden="true" />
             {formatSalary(job)}
           </p>
         </div>
 
         <div className="flex flex-wrap gap-2">
-          <span className="rounded-full bg-gold-500/20 px-3 py-1 text-xs font-semibold text-gold-700">
+          <span className="rounded-full bg-[rgba(212,255,0,0.15)] px-3 py-1 text-xs font-semibold text-lime-400">
             {job.category.name}
           </span>
-          <span className="rounded-full bg-navy-100 px-3 py-1 text-xs font-medium text-navy-800">
+          <span className="rounded-full bg-white/10 px-3 py-1 text-xs font-medium text-gray-300">
             {JOB_TYPE_LABEL[job.jobType] ?? job.jobType}
           </span>
-          <span className="rounded-full bg-navy-100 px-3 py-1 text-xs font-medium text-navy-800">
+          <span className="rounded-full bg-white/10 px-3 py-1 text-xs font-medium text-gray-300">
             {WORK_MODE_LABEL[job.workMode] ?? job.workMode}
           </span>
           {job.tags.map((tag) => (
-            <span key={tag} className="rounded-full bg-gold-50 px-3 py-1 text-xs font-medium text-gold-600">
+            <span key={tag} className="rounded-full bg-white/10 px-3 py-1 text-xs font-medium text-gray-300">
               {tag}
             </span>
           ))}
         </div>
 
-        <p className="text-[15px] leading-relaxed text-navy-600">{job.description}</p>
+        <p className="text-[15px] leading-relaxed text-gray-400">{job.description}</p>
       </div>
     </div>
   );

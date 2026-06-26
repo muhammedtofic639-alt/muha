@@ -5,29 +5,56 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        navy: {
-          50: "#f0f4f8",
-          100: "#d9e2ec",
-          400: "#627d98",
-          600: "#334e68",
-          800: "#1e293b",
-          900: "#0f172a",
-          950: "#0a0f1c",
+        // Ink — deep charcoal backgrounds, darkest → lightest surface
+        ink: {
+          900: "#0B0B0C", // app base
+          850: "#0F0F11",
+          800: "#121214", // raised surface
+          750: "#161619", // card
+          700: "#1C1C20", // elevated card / input
+          600: "#26262C", // hairline-strong / pressed
+          500: "#34343C",
         },
-        gold: {
-          50: "#fff8e1",
-          100: "#ffecb3",
-          400: "#f6c343",
-          500: "#f2a900",
-          600: "#d18f00",
+        // Lime — the electric accent
+        lime: {
+          700: "#9FC000",
+          600: "#B8E000",
+          500: "#D4FF00", // primary accent
+          400: "#E0FF4D",
+          300: "#ECFF8A",
         },
+        // Verify blue — public verification checkmark
+        verify: {
+          600: "#1488E6",
+          500: "#2EA8FF",
+          400: "#5DBEFF",
+        },
+        // Semantic hues
+        success: "#41E08B",
+        warning: "#FFC53D",
+        danger: "#FF5A5A",
       },
       fontFamily: {
-        sans: ["var(--font-dm-sans)", "system-ui", "sans-serif"],
-        display: ["var(--font-space-grotesk)", "system-ui", "sans-serif"],
+        sans: ["var(--font-manrope)", "system-ui", "-apple-system", "sans-serif"],
+        display: ["var(--font-space-grotesk)", "var(--font-manrope)", "system-ui", "sans-serif"],
+        mono: ["var(--font-space-mono)", "ui-monospace", "SF Mono", "monospace"],
+      },
+      borderRadius: {
+        xs: "8px",
+        sm: "12px",
+        md: "16px",
+        lg: "22px",
+        xl: "28px",
+        "2xl": "36px",
       },
       boxShadow: {
-        card: "0 10px 30px -10px rgba(15, 23, 42, 0.25)",
+        sm: "0 1px 2px rgba(0, 0, 0, 0.4)",
+        card: "0 12px 32px rgba(0, 0, 0, 0.5)",
+        md: "0 6px 18px rgba(0, 0, 0, 0.45)",
+        lg: "0 18px 44px rgba(0, 0, 0, 0.55)",
+        sheet: "0 -16px 48px rgba(0, 0, 0, 0.6)",
+        glow: "0 0 0 1px #D4FF00, 0 8px 28px rgba(212,255,0,0.45)",
+        "accent-btn": "0 8px 24px rgba(212,255,0,0.4)",
       },
       keyframes: {
         "pop-in": {

@@ -44,7 +44,7 @@ export function AdminReviewList({ initialAccounts }: { initialAccounts: PendingA
   }
 
   if (accounts.length === 0) {
-    return <p className="mt-6 text-sm text-navy-600">No accounts are waiting for review. 🎉</p>;
+    return <p className="mt-6 text-sm text-gray-400">No accounts are waiting for review. 🎉</p>;
   }
 
   return (
@@ -67,14 +67,14 @@ export function AdminReviewList({ initialAccounts }: { initialAccounts: PendingA
             ];
 
         return (
-          <li key={account.id} className="rounded-2xl bg-white p-4 shadow-card">
+          <li key={account.id} className="rounded-2xl border border-[var(--border-subtle)] bg-ink-800 p-4 shadow-card">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-navy-900 text-gold-400">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-ink-700 text-lime-400">
                 {isSeeker ? <User size={20} aria-hidden="true" /> : <Building2 size={20} aria-hidden="true" />}
               </div>
               <div className="min-w-0">
-                <p className="truncate font-display font-semibold text-navy-900">{name}</p>
-                <p className="text-xs text-navy-500">
+                <p className="truncate font-display font-semibold text-gray-50">{name}</p>
+                <p className="text-xs text-gray-500">
                   {isSeeker ? "Job Seeker" : "Employer"}
                   {account.username ? ` · @${account.username}` : ""}
                 </p>
@@ -89,7 +89,7 @@ export function AdminReviewList({ initialAccounts }: { initialAccounts: PendingA
                     href={doc.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-1.5 rounded-lg bg-navy-100 px-2.5 py-1.5 text-xs font-medium text-navy-800 transition-colors duration-200 hover:bg-navy-200"
+                    className="flex items-center gap-1.5 rounded-lg bg-ink-700 px-2.5 py-1.5 text-xs font-medium text-gray-200 transition-colors duration-200 hover:bg-ink-600"
                   >
                     <FileText size={14} aria-hidden="true" />
                     {doc.label}
@@ -97,7 +97,7 @@ export function AdminReviewList({ initialAccounts }: { initialAccounts: PendingA
                 ) : (
                   <span
                     key={doc.label}
-                    className="flex items-center gap-1.5 rounded-lg bg-navy-50 px-2.5 py-1.5 text-xs font-medium text-navy-300"
+                    className="flex items-center gap-1.5 rounded-lg bg-ink-800 px-2.5 py-1.5 text-xs font-medium text-gray-600"
                   >
                     <FileText size={14} aria-hidden="true" />
                     {doc.label} (missing)
@@ -111,7 +111,7 @@ export function AdminReviewList({ initialAccounts }: { initialAccounts: PendingA
                 type="button"
                 disabled={busyId === account.id}
                 onClick={() => decide(account.id, "APPROVED")}
-                className="flex flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-xl bg-gold-500 py-2.5 text-sm font-semibold text-navy-900 transition-colors duration-200 hover:bg-gold-400 disabled:cursor-not-allowed disabled:opacity-60"
+                className="flex flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-xl bg-lime-500 py-2.5 text-sm font-semibold text-ink-900 shadow-accent-btn transition-colors duration-200 hover:bg-lime-400 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 <Check size={16} aria-hidden="true" />
                 Approve
@@ -120,7 +120,7 @@ export function AdminReviewList({ initialAccounts }: { initialAccounts: PendingA
                 type="button"
                 disabled={busyId === account.id}
                 onClick={() => decide(account.id, "REJECTED")}
-                className="flex flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-xl border-2 border-navy-200 py-2.5 text-sm font-semibold text-navy-700 transition-colors duration-200 hover:border-red-400 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-60"
+                className="flex flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-xl border border-[var(--border-default)] py-2.5 text-sm font-semibold text-gray-300 transition-colors duration-200 hover:border-danger hover:text-danger disabled:cursor-not-allowed disabled:opacity-60"
               >
                 <X size={16} aria-hidden="true" />
                 Reject

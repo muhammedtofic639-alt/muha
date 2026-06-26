@@ -111,8 +111,8 @@ export function TelegramProvider({ children }: { children: React.ReactNode }) {
 function OpenInTelegramNotice() {
   return (
     <main className="flex flex-1 flex-col items-center justify-center gap-3 px-8 text-center">
-      <h1 className="font-display text-xl font-bold text-navy-900">Open in Telegram</h1>
-      <p className="max-w-xs text-sm text-navy-600">
+      <h1 className="font-display text-xl font-bold text-gray-50">Open in Telegram</h1>
+      <p className="max-w-xs text-sm text-gray-400">
         Abyssinia Jobs runs as a Telegram Mini App. Please open it from inside the Telegram app to
         continue.
       </p>

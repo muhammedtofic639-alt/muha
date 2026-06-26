@@ -9,6 +9,7 @@ import { isVideoPitchUrl } from "@/lib/videoEmbed";
  * Step 3 of onboarding: the document upload gate. Accepts multipart form data
  * and, depending on the account's chosen role, requires:
  *   SEEKER:    fullName, governmentId (file), videoPitchUrl (YouTube/TikTok link)
+ *              optionally: bio, profilePhoto (file) — shown on the swipe card
  *   RECRUITER: companyName, commercialLicense (file), ownerId (file)
  *
  * On success the account is (re-)set to PENDING_APPROVAL so an admin can
@@ -28,6 +29,8 @@ export async function POST(req: NextRequest) {
     const governmentId = form.get("governmentId");
     const videoPitchUrl = form.get("videoPitchUrl");
     const categoryId = form.get("categoryId");
+    const bio = form.get("bio");
+    const profilePhoto = form.get("profilePhoto");
 
     if (
       typeof fullName !== "string" ||
@@ -50,11 +53,28 @@ export async function POST(req: NextRequest) {
     }
 
     const { url: governmentIdUrl } = await uploadFile(governmentId, "government_id");
+    const profilePhotoUrl =
+      profilePhoto instanceof File ? (await uploadFile(profilePhoto, "profile_photo")).url : undefined;
 
     await prisma.seekerProfile.upsert({
       where: { accountId: account.id },
-      update: { fullName, governmentIdUrl, videoPitchUrl, categoryId },
-      create: { accountId: account.id, fullName, governmentIdUrl, videoPitchUrl, categoryId },
+      update: {
+        fullName,
+        governmentIdUrl,
+        videoPitchUrl,
+        categoryId,
+        ...(typeof bio === "string" && bio.trim() ? { bio } : {}),
+        ...(profilePhotoUrl ? { profilePhotoUrl } : {}),
+      },
+      create: {
+        accountId: account.id,
+        fullName,
+        governmentIdUrl,
+        videoPitchUrl,
+        categoryId,
+        bio: typeof bio === "string" && bio.trim() ? bio : undefined,
+        profilePhotoUrl,
+      },
     });
   } else {
     const companyName = form.get("companyName");

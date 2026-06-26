@@ -53,17 +53,17 @@ export function StarRating({ average, count, onRate, initialRating }: StarRating
                 handlePick(starIndex, half);
               }}
             >
-              <Star size={20} className="absolute inset-0 text-navy-200" aria-hidden="true" />
+              <Star size={20} className="absolute inset-0 text-white/20" aria-hidden="true" />
               <span className="absolute inset-0 overflow-hidden" style={{ width: `${fillRatio * 100}%` }}>
-                <Star size={20} className="text-gold-500" fill="currentColor" aria-hidden="true" />
+                <Star size={20} className="text-lime-500" fill="currentColor" aria-hidden="true" />
               </span>
             </button>
           );
         })}
       </div>
-      <span className="text-sm font-semibold text-navy-700">
+      <span className="text-sm font-semibold text-gray-300">
         {average !== null ? `${average.toFixed(1)}/10` : "No ratings yet"}
-        {count > 0 && <span className="ml-1 font-normal text-navy-400">({count})</span>}
+        {count > 0 && <span className="ml-1 font-normal text-gray-500">({count})</span>}
       </span>
     </div>
   );

@@ -9,14 +9,14 @@ import { Heart } from "lucide-react";
 export default function HomePage() {
   return (
     <main className="flex flex-1 flex-col items-center justify-center gap-6 px-6 py-10 text-center">
-      <div className="flex h-20 w-20 animate-pulse items-center justify-center rounded-3xl bg-navy-900 text-gold-400">
+      <div className="flex h-20 w-20 animate-pulse items-center justify-center rounded-lg bg-lime-500 text-ink-900">
         <Heart size={36} aria-hidden="true" fill="currentColor" />
       </div>
       <div>
-        <h1 className="font-display text-3xl font-bold text-navy-900">
-          Abyssinia <span className="text-gold-500">Jobs</span>
+        <h1 className="font-display text-3xl font-bold text-gray-50">
+          abyssinia <span className="text-gray-400">jobs</span>
         </h1>
-        <p className="mt-2 max-w-xs text-[15px] text-navy-600">Signing you in via Telegram…</p>
+        <p className="mt-2 max-w-xs text-[15px] text-gray-400">Signing you in via Telegram…</p>
       </div>
     </main>
   );

@@ -78,8 +78,8 @@ export function SwipeDeck({
 
   if (stack.length === 0) {
     return (
-      <div className="flex h-full flex-1 flex-col items-center justify-center gap-2 text-center text-navy-600">
-        <p className="font-display text-lg font-semibold text-navy-900">You&apos;re all caught up</p>
+      <div className="flex h-full flex-1 flex-col items-center justify-center gap-2 text-center text-gray-400">
+        <p className="font-display text-lg font-semibold text-gray-50">You&apos;re all caught up</p>
         <p className="text-sm">Check back soon for new matches.</p>
       </div>
     );
@@ -129,7 +129,7 @@ export function SwipeDeck({
           aria-label="Pass"
           disabled={isSubmitting}
           onClick={() => handleSwipe("PASS")}
-          className="flex h-14 w-14 cursor-pointer items-center justify-center rounded-full border-2 border-navy-200 bg-white text-navy-600 shadow-card transition-colors duration-200 hover:border-red-400 hover:text-red-500 disabled:cursor-not-allowed disabled:opacity-60"
+          className="flex h-14 w-14 cursor-pointer items-center justify-center rounded-full border border-[var(--border-default)] bg-ink-750 text-gray-300 shadow-card transition-colors duration-200 hover:border-danger hover:text-danger disabled:cursor-not-allowed disabled:opacity-60"
         >
           <X size={28} aria-hidden="true" />
         </button>
@@ -138,7 +138,7 @@ export function SwipeDeck({
           aria-label="Like"
           disabled={isSubmitting}
           onClick={() => handleSwipe("LIKE")}
-          className="flex h-16 w-16 cursor-pointer items-center justify-center rounded-full bg-gold-500 text-navy-900 shadow-card transition-colors duration-200 hover:bg-gold-400 disabled:cursor-not-allowed disabled:opacity-60"
+          className="flex h-16 w-16 cursor-pointer items-center justify-center rounded-full bg-lime-500 text-ink-900 shadow-accent-btn transition-colors duration-200 hover:bg-lime-400 disabled:cursor-not-allowed disabled:opacity-60"
         >
           <Heart size={30} aria-hidden="true" fill="currentColor" />
         </button>
@@ -160,10 +160,10 @@ export function SwipeDeck({
 function DeckSkeleton() {
   return (
     <div className="flex flex-1 flex-col items-center justify-center gap-6 px-4 py-4">
-      <div className="h-[480px] w-full max-w-sm animate-pulse rounded-3xl bg-navy-100" />
+      <div className="h-[480px] w-full max-w-sm animate-pulse rounded-xl bg-ink-800" />
       <div className="flex items-center gap-6">
-        <div className="h-14 w-14 animate-pulse rounded-full bg-navy-100" />
-        <div className="h-16 w-16 animate-pulse rounded-full bg-navy-100" />
+        <div className="h-14 w-14 animate-pulse rounded-full bg-ink-800" />
+        <div className="h-16 w-16 animate-pulse rounded-full bg-ink-800" />
       </div>
     </div>
   );

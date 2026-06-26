@@ -23,8 +23,8 @@ export default async function AdminPage() {
 
   return (
     <main className="flex-1 px-4 py-6">
-      <h1 className="font-display text-xl font-bold text-navy-900">Verification Queue</h1>
-      <p className="mt-1 text-sm text-navy-600">
+      <h1 className="font-display text-xl font-bold text-gray-50">Verification Queue</h1>
+      <p className="mt-1 text-sm text-gray-400">
         Review submitted documents and approve or reject each applicant.
       </p>
       <AdminReviewList initialAccounts={pending as unknown as PendingAccount[]} />

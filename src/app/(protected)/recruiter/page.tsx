@@ -66,7 +66,7 @@ export default function RecruiterPage() {
           id="job-select"
           value={selectedJobId}
           onChange={(e) => setSelectedJobId(e.target.value)}
-          className="w-full cursor-pointer rounded-xl border border-navy-200 bg-white px-3 py-2 text-sm font-medium text-navy-900"
+          className="w-full cursor-pointer rounded-xl border border-[var(--border-default)] bg-ink-800 px-3 py-2 text-sm font-medium text-gray-50"
         >
           {jobOptions.map((job) => (
             <option key={job.id} value={job.id}>
@@ -82,8 +82,8 @@ export default function RecruiterPage() {
           onClick={() => setSelectedCategoryId("")}
           className={`shrink-0 cursor-pointer rounded-full px-3.5 py-1.5 text-sm font-medium transition-colors duration-200 ${
             selectedCategoryId === ""
-              ? "bg-navy-900 text-white"
-              : "bg-navy-100 text-navy-700 hover:bg-navy-200"
+              ? "bg-lime-500 text-ink-900"
+              : "bg-ink-800 text-gray-300 hover:bg-ink-700"
           }`}
         >
           All
@@ -95,8 +95,8 @@ export default function RecruiterPage() {
             onClick={() => setSelectedCategoryId(category.id)}
             className={`shrink-0 cursor-pointer rounded-full px-3.5 py-1.5 text-sm font-medium transition-colors duration-200 ${
               selectedCategoryId === category.id
-                ? "bg-navy-900 text-white"
-                : "bg-navy-100 text-navy-700 hover:bg-navy-200"
+                ? "bg-lime-500 text-ink-900"
+                : "bg-ink-800 text-gray-300 hover:bg-ink-700"
             }`}
           >
             {category.name}

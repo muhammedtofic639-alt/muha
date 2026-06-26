@@ -23,7 +23,7 @@ export function MatchModal({
 }) {
   return (
     <motion.div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-navy-950/70 px-6"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-[var(--scrim)] px-6"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
@@ -33,7 +33,7 @@ export function MatchModal({
       aria-label="Match found"
     >
       <motion.div
-        className="relative w-full max-w-sm rounded-3xl bg-white p-8 text-center shadow-card animate-pop-in"
+        className="relative w-full max-w-sm rounded-xl border border-[var(--border-default)] bg-ink-750 p-8 text-center shadow-card animate-pop-in"
         initial={{ scale: 0.8 }}
         animate={{ scale: 1 }}
         exit={{ scale: 0.8 }}
@@ -42,22 +42,22 @@ export function MatchModal({
           type="button"
           aria-label="Close"
           onClick={onClose}
-          className="absolute right-4 top-4 cursor-pointer rounded-full p-1 text-navy-400 transition-colors duration-200 hover:text-navy-800"
+          className="absolute right-4 top-4 cursor-pointer rounded-full p-1 text-gray-500 transition-colors duration-200 hover:text-gray-50"
         >
           <X size={20} aria-hidden="true" />
         </button>
-        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gold-500/20 text-gold-500">
+        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[rgba(212,255,0,0.15)] text-lime-400">
           <Sparkles size={32} aria-hidden="true" />
         </div>
-        <h2 className="font-display text-2xl font-bold text-navy-900">It&apos;s a Match!</h2>
-        <p className="mt-2 text-[15px] text-navy-600">
+        <h2 className="font-display text-2xl font-bold text-gray-50">It&apos;s a Match!</h2>
+        <p className="mt-2 text-[15px] text-gray-400">
           You and {partnerName} both swiped right. Head to your matches to start the conversation.
         </p>
         {chatUrl && (
           <button
             type="button"
             onClick={() => openChat(chatUrl)}
-            className="mt-6 flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-gold-500 py-3 text-sm font-semibold text-navy-900 transition-colors duration-200 hover:bg-gold-400"
+            className="mt-6 flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-lime-500 py-3 text-sm font-semibold text-ink-900 shadow-accent-btn transition-colors duration-200 hover:bg-lime-400"
           >
             <MessageCircle size={18} aria-hidden="true" />
             Message on Telegram
@@ -66,7 +66,7 @@ export function MatchModal({
         <button
           type="button"
           onClick={onClose}
-          className={`${chatUrl ? "mt-2" : "mt-6"} w-full cursor-pointer rounded-xl bg-navy-900 py-3 text-sm font-semibold text-white transition-colors duration-200 hover:bg-navy-800`}
+          className={`${chatUrl ? "mt-2" : "mt-6"} w-full cursor-pointer rounded-xl border border-[var(--border-default)] bg-ink-700 py-3 text-sm font-semibold text-gray-50 transition-colors duration-200 hover:bg-ink-600`}
         >
           Keep Swiping
         </button>

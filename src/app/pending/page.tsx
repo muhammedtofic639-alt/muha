@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
-import { ShieldCheck } from "lucide-react";
+import { Clock, ShieldCheck } from "lucide-react";
 import { getCurrentAccount } from "@/lib/session";
+import { BackToStartButton } from "@/components/BackToStartButton";
 
 export default async function PendingPage() {
   const account = await getCurrentAccount();
@@ -9,18 +10,22 @@ export default async function PendingPage() {
   if (account.status === "REJECTED") redirect("/rejected");
 
   return (
-    <main className="flex flex-1 flex-col items-center justify-center gap-6 px-6 py-10 text-center">
-      <div className="flex h-20 w-20 items-center justify-center rounded-3xl bg-navy-900 text-gold-400">
-        <ShieldCheck size={36} aria-hidden="true" />
+    <main className="flex flex-1 flex-col items-center justify-center px-8 py-10 text-center">
+      <div className="mb-6 flex h-[88px] w-[88px] items-center justify-center rounded-lg border-[1.5px] border-[rgba(255,197,61,0.35)] bg-[rgba(255,197,61,0.15)]">
+        <Clock size={40} className="text-warning" aria-hidden="true" />
       </div>
-      <div>
-        <h1 className="font-display text-2xl font-bold text-navy-900">Under Review</h1>
-        <p className="mt-2 max-w-xs text-[15px] leading-relaxed text-navy-600">
-          We&apos;re verifying your documents. You can check back here once your account is approved
-          — this usually takes less than 24 hours.
+      <h1 className="mb-2.5 font-display text-2xl font-bold tracking-tight text-gray-50">Awaiting Approval</h1>
+      <p className="mb-9 max-w-xs text-[15px] leading-relaxed text-gray-400">
+        Your documents are under review. We&apos;ll notify you within 24 hours once your account is approved.
+      </p>
+      <div className="mb-8 flex w-full flex-col items-center gap-2.5 rounded-md border border-[var(--border-subtle)] bg-ink-750 px-6 py-[18px]">
+        <ShieldCheck size={20} className="text-gray-600" aria-hidden="true" />
+        <p className="text-[13px] leading-relaxed text-gray-400">
+          Your documents are encrypted and reviewed by our admin team. No access until approval.
         </p>
       </div>
-      {account.username && <p className="text-sm text-navy-400">@{account.username}</p>}
+      {account.username && <p className="mb-6 text-sm text-gray-600">@{account.username}</p>}
+      <BackToStartButton />
     </main>
   );
 }
