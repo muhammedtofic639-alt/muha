@@ -34,7 +34,8 @@ export function DocumentUploadForm({
         return;
       }
 
-      router.push("/pending");
+      // Seekers go live immediately (/seeker); recruiters wait for review (/pending).
+      router.push(data.next ?? "/pending");
     } finally {
       setIsSubmitting(false);
     }
@@ -118,7 +119,7 @@ export function DocumentUploadForm({
         disabled={isSubmitting}
         className="mt-1 h-14 w-full cursor-pointer rounded-full bg-lime-500 font-sans text-[17px] font-extrabold text-ink-900 shadow-accent-btn transition-opacity duration-200 disabled:cursor-not-allowed disabled:opacity-60"
       >
-        {role === "SEEKER" ? "Go live ✓" : isSubmitting ? "Submitting…" : "Submit for review"}
+        {isSubmitting ? "Submitting…" : role === "SEEKER" ? "Go live ✓" : "Submit for review"}
       </button>
     </form>
   );

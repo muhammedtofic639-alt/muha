@@ -84,11 +84,14 @@ export function AdminReviewList({ initialAccounts }: { initialAccounts: PendingA
             <div className="mt-3 flex flex-wrap gap-2">
               {documents.map((doc) =>
                 doc.url ? (
+                  // Browsers block top-frame navigation to data: URLs, so
+                  // inline-stored documents are offered as downloads instead.
                   <a
                     key={doc.label}
                     href={doc.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
+                    {...(doc.url.startsWith("data:")
+                      ? { download: doc.label.replace(/\s+/g, "-").toLowerCase() }
+                      : { target: "_blank", rel: "noopener noreferrer" })}
                     className="flex items-center gap-1.5 rounded-lg bg-ink-700 px-2.5 py-1.5 text-xs font-medium text-gray-200 transition-colors duration-200 hover:bg-ink-600"
                   >
                     <FileText size={14} aria-hidden="true" />

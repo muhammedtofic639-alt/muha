@@ -39,6 +39,7 @@ export function TelegramProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const [state, setState] = useState<AuthState>("loading");
   const [telegramId, setTelegramId] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -79,7 +80,19 @@ export function TelegramProvider({ children }: { children: React.ReactNode }) {
           body: JSON.stringify({ initDataRaw }),
         });
         if (!res.ok) {
-          if (!cancelled) setState("error");
+          // Surface the server's diagnostic (missing env vars, DB unreachable,
+          // expired initData) instead of hanging on the splash forever.
+          let message = `Sign-in failed (HTTP ${res.status}).`;
+          try {
+            const data = (await res.json()) as { error?: string };
+            if (data.error) message = data.error;
+          } catch {
+            // Non-JSON error body (e.g. a hosting platform's HTML error page).
+          }
+          if (!cancelled) {
+            setErrorMessage(message);
+            setState("error");
+          }
           return;
         }
         const data = (await res.json()) as { next: string; status: string };
@@ -89,7 +102,10 @@ export function TelegramProvider({ children }: { children: React.ReactNode }) {
         router.replace(data.next);
         router.refresh();
       } catch {
-        if (!cancelled) setState("error");
+        if (!cancelled) {
+          setErrorMessage("Could not reach the server. Check your connection and try again.");
+          setState("error");
+        }
       }
     }
 
@@ -103,8 +119,33 @@ export function TelegramProvider({ children }: { children: React.ReactNode }) {
     return <OpenInTelegramNotice />;
   }
 
+  if (state === "error") {
+    return <AuthErrorNotice message={errorMessage} />;
+  }
+
   return (
     <TelegramContext.Provider value={{ state, telegramId }}>{children}</TelegramContext.Provider>
+  );
+}
+
+function AuthErrorNotice({ message }: { message: string | null }) {
+  return (
+    <main className="flex flex-1 flex-col items-center justify-center gap-4 px-8 text-center">
+      <div className="flex h-16 w-16 items-center justify-center rounded-lg border-[1.5px] border-[rgba(255,90,90,0.35)] bg-[rgba(255,90,90,0.15)] font-display text-2xl font-bold text-danger">
+        !
+      </div>
+      <h1 className="font-display text-xl font-bold text-gray-50">Couldn&apos;t sign you in</h1>
+      <p className="max-w-xs text-sm leading-relaxed text-gray-400">
+        {message ?? "Something went wrong during Telegram sign-in."}
+      </p>
+      <button
+        type="button"
+        onClick={() => window.location.reload()}
+        className="mt-2 cursor-pointer rounded-full bg-lime-500 px-6 py-3 text-sm font-bold text-ink-900 shadow-accent-btn"
+      >
+        Try again
+      </button>
+    </main>
   );
 }
 

@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { getCurrentAccount } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
+import { ensureCategories } from "@/lib/categories";
 import { DocumentUploadForm } from "@/components/DocumentUploadForm";
 
 export default async function DocumentsPage() {
@@ -9,6 +10,7 @@ export default async function DocumentsPage() {
     redirect("/");
   }
 
+  await ensureCategories();
   const categories = await prisma.category.findMany({
     select: { id: true, name: true, slug: true },
     orderBy: { name: "asc" },

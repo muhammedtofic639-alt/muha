@@ -81,6 +81,16 @@ export async function recordSwipe(input: SwipeInput): Promise<SwipeResult> {
       throw new SwipeError("targetAccountId is required for recruiter swipes");
     }
 
+    // A recruiter can only swipe candidates for their own openings — otherwise
+    // they could create matches (and expose chat links) on other companies' jobs.
+    const ownedJob = await tx.job.findFirst({
+      where: { id: input.jobId, company: { accountId: input.actorId } },
+      select: { id: true },
+    });
+    if (!ownedJob) {
+      throw new SwipeError("Job not found");
+    }
+
     const subjectKey = `${input.jobId}:${input.targetAccountId}`;
     const swipe = await tx.swipe.upsert({
       where: { actorId_subjectKey: { actorId: input.actorId, subjectKey } },

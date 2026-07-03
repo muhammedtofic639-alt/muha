@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { MapPin, BriefcaseBusiness, Image as ImageIcon, Video as VideoIcon, Play, ArrowLeft } from "lucide-react";
+import { MapPin, BriefcaseBusiness, Video as VideoIcon, Play, ArrowLeft } from "lucide-react";
 import { CandidateCardData } from "@/lib/types";
 import { getVideoEmbed } from "@/lib/videoEmbed";
 

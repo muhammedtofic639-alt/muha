@@ -97,13 +97,17 @@ Authentication is fully Telegram-native — there are no passwords.
    "Open in Telegram" notice instead.
 2. **Role selection** (`/onboarding/role`) — choose Job Seeker or Employer.
 3. **Document upload** (`/onboarding/documents`) — seekers upload a Government
-   ID; employers upload a Commercial License and the owner's Government ID,
-   via `uploadFile()` (`src/lib/upload.ts`), a placeholder S3/Cloudinary
-   adapter. Submitting (re-)sets `status = PENDING_APPROVAL`.
-4. **Admin lockout** — `(protected)/layout.tsx` is a Server Component that
-   loads the live `Account.status` on every request. `PENDING_APPROVAL` →
-   `/pending` ("Under Review"); `REJECTED` → `/rejected`. Only `APPROVED`
-   accounts reach the swipe decks.
+   ID (plus an optional portrait photo and bio); employers upload a Commercial
+   License and the owner's Government ID, via `uploadFile()`
+   (`src/lib/upload.ts`). With no storage provider configured, files are
+   stored inline as base64 data URLs (4MB cap per file). Submitting sets
+   seekers to `APPROVED` immediately (they go live and are discoverable right
+   away, per the design); recruiters are set to `PENDING_APPROVAL` for admin
+   review.
+4. **Admin lockout (recruiters)** — `(protected)/layout.tsx` is a Server
+   Component that loads the live `Account.status` on every request.
+   `PENDING_APPROVAL` → `/pending` ("Under Review"); `REJECTED` →
+   `/rejected`. Only `APPROVED` accounts reach the swipe decks.
 
 Session JWTs (`src/lib/auth.ts`) carry only `{ accountId, role }`, never
 `status` — so an admin approving/rejecting takes effect on the next request

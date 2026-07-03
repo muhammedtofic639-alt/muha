@@ -18,32 +18,68 @@ interface TelegramAuthBody {
  * the account's onboarding/approval state.
  */
 export async function POST(req: NextRequest) {
-  const body = (await req.json()) as TelegramAuthBody;
-  const validated = validateInitData(body.initDataRaw);
+  // Fail loud and specific when the deployment is missing configuration —
+  // otherwise every launch dies as an opaque 500 and the app looks broken.
+  const missing = ["TELEGRAM_BOT_TOKEN", "SESSION_SECRET", "DATABASE_URL"].filter(
+    (name) => !process.env[name]
+  );
+  if (missing.length > 0) {
+    console.error(`/api/auth/telegram: missing environment variables: ${missing.join(", ")}`);
+    return NextResponse.json(
+      {
+        error: `Server is not configured yet — missing ${missing.join(", ")}. Set ${
+          missing.length === 1 ? "it" : "them"
+        } in the deployment's environment variables and redeploy.`,
+      },
+      { status: 503 }
+    );
+  }
 
+  let body: TelegramAuthBody;
+  try {
+    body = (await req.json()) as TelegramAuthBody;
+  } catch {
+    return NextResponse.json({ error: "Request body must be JSON with initDataRaw" }, { status: 400 });
+  }
+
+  const validated = validateInitData(body.initDataRaw);
   if (!validated) {
-    return NextResponse.json({ error: "Invalid Telegram initData" }, { status: 401 });
+    return NextResponse.json(
+      { error: "Telegram sign-in data is invalid or expired. Close and reopen the Mini App." },
+      { status: 401 }
+    );
   }
 
   const telegramId = String(validated.user.id);
   const username = validated.user.username ?? null;
 
-  // First launch creates a bare, role-less account in PENDING_APPROVAL; repeat
-  // launches just refresh the cached username (it can change on Telegram's side).
-  const account = await prisma.account.upsert({
-    where: { telegramId },
-    update: { username },
-    create: { telegramId, username, role: "SEEKER" },
-    include: { seekerProfile: true, companyProfile: true },
-  });
+  try {
+    // First launch creates a bare account in PENDING_APPROVAL; repeat launches
+    // just refresh the cached username (it can change on Telegram's side).
+    const account = await prisma.account.upsert({
+      where: { telegramId },
+      update: { username },
+      create: { telegramId, username, role: "SEEKER" },
+      include: { seekerProfile: true, companyProfile: true },
+    });
 
-  const token = await signSession({ accountId: account.id, role: account.role });
+    const token = await signSession({ accountId: account.id, role: account.role });
 
-  const next = resolveNextPath(account);
+    const next = resolveNextPath(account);
 
-  const res = NextResponse.json({ accountId: account.id, status: account.status, next });
-  res.cookies.set(sessionCookieOptions.name, token, sessionCookieOptions);
-  return res;
+    const res = NextResponse.json({ accountId: account.id, status: account.status, next });
+    res.cookies.set(sessionCookieOptions.name, token, sessionCookieOptions);
+    return res;
+  } catch (err) {
+    console.error("/api/auth/telegram: database error", err);
+    return NextResponse.json(
+      {
+        error:
+          "Could not reach the database. Check DATABASE_URL and make sure the schema has been pushed (npx prisma db push).",
+      },
+      { status: 500 }
+    );
+  }
 }
 
 /** Decide where the user should land right after authenticating. */

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { AccountStatus } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { getCurrentAccount } from "@/lib/session";
-import { uploadFile } from "@/lib/upload";
+import { uploadFile, UploadError } from "@/lib/upload";
 import { isVideoPitchUrl } from "@/lib/videoEmbed";
 
 /**
@@ -12,9 +12,10 @@ import { isVideoPitchUrl } from "@/lib/videoEmbed";
  *              optionally: bio, profilePhoto (file) — shown on the swipe card
  *   RECRUITER: companyName, commercialLicense (file), ownerId (file)
  *
- * On success the account is (re-)set to PENDING_APPROVAL so an admin can
- * review the freshly uploaded documents — this also covers resubmission
- * after a REJECTED status.
+ * Seekers go live instantly on submit (status APPROVED — "You'll be live and
+ * discoverable instantly"); recruiters are (re-)set to PENDING_APPROVAL so an
+ * admin reviews their business documents first. Resubmission after a REJECTED
+ * status follows the same rules.
  */
 export async function POST(req: NextRequest) {
   const account = await getCurrentAccount();
@@ -36,6 +37,7 @@ export async function POST(req: NextRequest) {
       typeof fullName !== "string" ||
       !fullName.trim() ||
       !(governmentId instanceof File) ||
+      governmentId.size === 0 ||
       typeof videoPitchUrl !== "string" ||
       !isVideoPitchUrl(videoPitchUrl) ||
       typeof categoryId !== "string" ||
@@ -52,9 +54,22 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Unknown category" }, { status: 400 });
     }
 
-    const { url: governmentIdUrl } = await uploadFile(governmentId, "government_id");
-    const profilePhotoUrl =
-      profilePhoto instanceof File ? (await uploadFile(profilePhoto, "profile_photo")).url : undefined;
+    let governmentIdUrl: string;
+    let profilePhotoUrl: string | undefined;
+    try {
+      governmentIdUrl = (await uploadFile(governmentId, "government_id")).url;
+      // An unfilled <input type="file"> still submits a zero-byte File —
+      // only treat a real selection as a photo upload.
+      profilePhotoUrl =
+        profilePhoto instanceof File && profilePhoto.size > 0
+          ? (await uploadFile(profilePhoto, "profile_photo")).url
+          : undefined;
+    } catch (err) {
+      if (err instanceof UploadError) {
+        return NextResponse.json({ error: err.message }, { status: 400 });
+      }
+      throw err;
+    }
 
     await prisma.seekerProfile.upsert({
       where: { accountId: account.id },
@@ -85,7 +100,9 @@ export async function POST(req: NextRequest) {
       typeof companyName !== "string" ||
       !companyName.trim() ||
       !(commercialLicense instanceof File) ||
-      !(ownerId instanceof File)
+      commercialLicense.size === 0 ||
+      !(ownerId instanceof File) ||
+      ownerId.size === 0
     ) {
       return NextResponse.json(
         { error: "companyName, commercialLicense, and ownerId files are required" },
@@ -93,10 +110,19 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const [{ url: commercialLicenseUrl }, { url: ownerIdUrl }] = await Promise.all([
-      uploadFile(commercialLicense, "commercial_license"),
-      uploadFile(ownerId, "owner_id"),
-    ]);
+    let commercialLicenseUrl: string;
+    let ownerIdUrl: string;
+    try {
+      [{ url: commercialLicenseUrl }, { url: ownerIdUrl }] = await Promise.all([
+        uploadFile(commercialLicense, "commercial_license"),
+        uploadFile(ownerId, "owner_id"),
+      ]);
+    } catch (err) {
+      if (err instanceof UploadError) {
+        return NextResponse.json({ error: err.message }, { status: 400 });
+      }
+      throw err;
+    }
 
     await prisma.companyProfile.upsert({
       where: { accountId: account.id },
@@ -105,10 +131,13 @@ export async function POST(req: NextRequest) {
     });
   }
 
+  const isSeeker = account.role === "SEEKER";
+  const status = isSeeker ? AccountStatus.APPROVED : AccountStatus.PENDING_APPROVAL;
+
   await prisma.account.update({
     where: { id: account.id },
-    data: { status: AccountStatus.PENDING_APPROVAL },
+    data: { status },
   });
 
-  return NextResponse.json({ ok: true, status: AccountStatus.PENDING_APPROVAL });
+  return NextResponse.json({ ok: true, status, next: isSeeker ? "/seeker" : "/pending" });
 }

@@ -1,12 +1,15 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import Link from "next/link";
+import { Plus, BriefcaseBusiness } from "lucide-react";
 import { TopBar } from "@/components/TopBar";
 import { SwipeDeck, DeckCard } from "@/components/SwipeDeck";
 import { CandidateCardData, CategoryOption } from "@/lib/types";
 
 export default function RecruiterPage() {
   const [jobOptions, setJobOptions] = useState<{ id: string; title: string }[]>([]);
+  const [jobsLoaded, setJobsLoaded] = useState(false);
   const [selectedJobId, setSelectedJobId] = useState<string>("");
   const [categories, setCategories] = useState<CategoryOption[]>([]);
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>("");
@@ -20,7 +23,8 @@ export default function RecruiterPage() {
       .then((data) => {
         setJobOptions(data.jobs ?? []);
         if (data.jobs?.[0]) setSelectedJobId(data.jobs[0].id);
-      });
+      })
+      .finally(() => setJobsLoaded(true));
     fetch("/api/categories")
       .then((res) => res.json())
       .then((data) => setCategories(data.categories ?? []));
@@ -55,10 +59,35 @@ export default function RecruiterPage() {
     return { matched: Boolean(data.matched), partnerChatUrl: data.partnerChatUrl };
   }
 
+  // A recruiter with no postings has nothing to swipe on — send them to the
+  // job form instead of an endless skeleton.
+  if (jobsLoaded && jobOptions.length === 0) {
+    return (
+      <>
+        <TopBar active="recruiter" />
+        <div className="flex flex-1 flex-col items-center justify-center gap-4 px-8 text-center">
+          <div className="flex h-16 w-16 items-center justify-center rounded-lg bg-ink-750 text-gray-500">
+            <BriefcaseBusiness size={28} aria-hidden="true" />
+          </div>
+          <div>
+            <p className="font-display text-lg font-semibold text-gray-50">No job openings yet</p>
+            <p className="mt-1 text-sm text-gray-400">Post your first job to start reviewing candidates.</p>
+          </div>
+          <Link
+            href="/recruiter/jobs/new"
+            className="mt-2 flex items-center gap-2 rounded-full bg-lime-500 px-6 py-3 text-sm font-bold text-ink-900 shadow-accent-btn"
+          >
+            <Plus size={16} aria-hidden="true" /> Post a job
+          </Link>
+        </div>
+      </>
+    );
+  }
+
   return (
     <>
       <TopBar active="recruiter" />
-      <div className="px-4 pt-4">
+      <div className="flex items-center gap-2 px-4 pt-4">
         <label htmlFor="job-select" className="sr-only">
           Select job opening
         </label>
@@ -74,6 +103,13 @@ export default function RecruiterPage() {
             </option>
           ))}
         </select>
+        <Link
+          href="/recruiter/jobs/new"
+          aria-label="Post a new job"
+          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-lime-500 text-ink-900"
+        >
+          <Plus size={18} aria-hidden="true" />
+        </Link>
       </div>
 
       <div className="flex gap-2 overflow-x-auto px-4 pt-3 pb-1" role="group" aria-label="Filter by category">

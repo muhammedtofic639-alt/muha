@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
 import { getCurrentAccount } from "@/lib/session";
 import { getJobFeedForSeeker, getCandidateFeedForJob } from "@/lib/feed";
 
@@ -21,6 +22,14 @@ export async function GET(req: NextRequest) {
     const jobId = params.get("jobId");
     if (!jobId) {
       return NextResponse.json({ error: "jobId is required for recruiter view" }, { status: 400 });
+    }
+    // Recruiters may only review candidates for their own openings.
+    const job = await prisma.job.findFirst({
+      where: { id: jobId, company: { accountId: account.id } },
+      select: { id: true },
+    });
+    if (!job) {
+      return NextResponse.json({ error: "Job not found" }, { status: 404 });
     }
     const candidates = await getCandidateFeedForJob(jobId, account.id, categoryId);
     return NextResponse.json({ cards: candidates });

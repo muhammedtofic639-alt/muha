@@ -63,11 +63,23 @@ export async function getCandidateFeedForJob(jobId: string, recruiterAccountId: 
     where: {
       accountId: { notIn: excludedAccountIds },
       ...(categoryId ? { categoryId } : {}),
-      // Only surface candidates who've actually finished their card media —
-      // an empty photo/video slide isn't swipeable.
-      profilePhotoUrl: { not: null },
+      account: { status: "APPROVED" },
     },
-    include: {
+    // Explicit select: only the fields the swipe card renders. Never expose
+    // governmentIdUrl (a verification document) to other users' clients.
+    select: {
+      id: true,
+      accountId: true,
+      fullName: true,
+      headline: true,
+      yearsExp: true,
+      bio: true,
+      skills: true,
+      skillsDescription: true,
+      profilePhotoUrl: true,
+      videoPitchUrl: true,
+      avatarUrl: true,
+      location: true,
       category: { select: { id: true, name: true, slug: true } },
     },
     orderBy: { createdAt: "desc" },
